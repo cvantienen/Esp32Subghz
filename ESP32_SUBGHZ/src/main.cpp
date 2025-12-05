@@ -51,15 +51,17 @@ void setup() {
     button_select.init();
     button_down.init();
     button_back.init();
-    delay(200);
+    delay(50);
 
+    radio.initCC1101();
+    delay(50);
     display.init();
-    delay(200);
+    delay(50);
+
     display.drawIntroScreen();
     display.show();
     delay(1500);
-    radio.initCC1101();
-    delay(200);
+
     menu.setCurrentScreen(MenuScreen::CATEGORIES);
     menu.setCategoryCount(NUM_OF_CATEGORIES);
     Serial.println("[setup] Setup complete.");
