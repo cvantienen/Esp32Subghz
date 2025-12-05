@@ -4,18 +4,12 @@
 // SET COUNTS
 // =============================================================================
 
-void Menu::setCategoryCount(int8_t count) {
-    categoryCount = count;
-}
+void Menu::setCategoryCount(int8_t count) { categoryCount = count; }
 
-void Menu::setSignalCount(int8_t count) {
-    signalCount = count;
-}
+void Menu::setSignalCount(int8_t count) { signalCount = count; }
 
 // Set the current screen
-void Menu::setCurrentScreen(MenuScreen state) {
-    currentScreen = state;
-}
+void Menu::setCurrentScreen(MenuScreen state) { currentScreen = state; }
 
 // =============================================================================
 // CATEGORY NAVIGATION
@@ -60,31 +54,21 @@ void Menu::signalDown() {
 // =============================================================================
 
 // Reset signal index to 0 when entering a new category.
-void Menu::resetSignal() {
-    signalIndex = 0;
-}
+void Menu::resetSignal() { signalIndex = 0; }
 
 // =============================================================================
 // GETTERS
 // =============================================================================
 
-int8_t Menu::getSelectedCategory() const {
-    return categoryIndex;
-}
+int8_t Menu::getSelectedCategory() const { return categoryIndex; }
 
-int8_t Menu::getSelectedSignal() const {
-    return signalIndex;
-}
+int8_t Menu::getSelectedSignal() const { return signalIndex; }
 
 // Get the current screen
-MenuScreen Menu::getCurrentScreen() const {
-    return currentScreen;
-}
+MenuScreen Menu::getCurrentScreen() const { return currentScreen; }
 
 // get signal count
-int8_t Menu::getSignalCount() const {
-    return signalCount;
-}
+int8_t Menu::getSignalCount() const { return signalCount; }
 
 // =============================================================================
 // PREV/NEXT FOR DISPLAY

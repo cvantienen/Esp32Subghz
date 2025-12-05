@@ -18,42 +18,41 @@
 // =============================================================================
 // The menu is a state machine with 4 screens.
 enum class MenuScreen : uint8_t {
-    CATEGORIES,  // List of signal categories
-    SIGNALS,     // Signals within selected category
-    DETAILS,     // Info about selected signal  
-    TRANSMIT     // Sending signal
+    CATEGORIES, // List of signal categories
+    SIGNALS,    // Signals within selected category
+    DETAILS,    // Info about selected signal
+    TRANSMIT    // Sending signal
 };
 
 class Menu {
-private:
+  private:
     MenuScreen currentScreen = MenuScreen::CATEGORIES;
-    int8_t categoryIndex = 0;   // Currently selected category (0 to categoryCount-1)
-    int8_t signalIndex = 0;     // Currently selected signal within category
+    int8_t categoryIndex =
+        0; // Currently selected category (0 to categoryCount-1)
+    int8_t signalIndex = 0; // Currently selected signal within category
     int8_t categoryCount;   // Total number of categories
     int8_t signalCount;     // Total signals in current category
 
-public:
-
+  public:
     // Constructor - the MenuScreen object is initialized to CATEGORIES screen
-    Menu() {
-        currentScreen = MenuScreen::CATEGORIES;
-    }
+    Menu() { currentScreen = MenuScreen::CATEGORIES; }
 
     // =============================================================================
     // SET COUNTS - Call these to tell Menu how many items exist
     // -------------------------------------------------------------------------
-    void setCategoryCount(int8_t count);  // Call once in setup()
-    void setSignalCount(int8_t count);    // Call when entering a category (count varies per category)
+    void setCategoryCount(int8_t count); // Call once in setup()
+    void setSignalCount(int8_t count);   // Call when entering a category (count
+                                         // varies per category)
     // Set the current screen
-    void setCurrentScreen(MenuScreen state); 
-    
+    void setCurrentScreen(MenuScreen state);
+
     // -------------------------------------------------------------------------
     // NAVIGATION - Move selection up/down with wrap-around
     // -------------------------------------------------------------------------
-    void categoryUp();    // Move to previous category (wraps to last if at first)
-    void categoryDown();  // Move to next category (wraps to first if at last)
-    void signalUp();      // Move to previous signal
-    void signalDown();    // Move to next signal
+    void categoryUp(); // Move to previous category (wraps to last if at first)
+    void categoryDown(); // Move to next category (wraps to first if at last)
+    void signalUp();     // Move to previous signal
+    void signalDown();   // Move to next signal
 
     // -------------------------------------------------------------------------
     // RESET SIGNAL - Call when entering a new category

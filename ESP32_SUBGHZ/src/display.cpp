@@ -5,10 +5,9 @@
 
 // Constructor initializes the internal display object
 // You must match your specific display constructor!
-OledDisplay::OledDisplay(const unsigned char** iconArray)
-    : display(U8G2_R0, U8X8_PIN_NONE),   // YOUR DISPLAY CONSTRUCTOR HERE
-        icons(iconArray)
-{}
+OledDisplay::OledDisplay(const unsigned char **iconArray)
+    : display(U8G2_R0, U8X8_PIN_NONE), // YOUR DISPLAY CONSTRUCTOR HERE
+      icons(iconArray) {}
 
 void OledDisplay::init() {
     display.setColorIndex(1);
@@ -16,18 +15,23 @@ void OledDisplay::init() {
     display.clearBuffer();
 }
 
-void OledDisplay::clear() {
-    display.clearBuffer();
+void OledDisplay::clear() { display.clearBuffer(); }
+
+void OledDisplay::show() { display.sendBuffer(); }
+
+// ----------------------------------------------------------
+// Draw intro screen
+// ----------------------------------------------------------
+void OledDisplay::drawIntroScreen() {
+    display.drawXBMP(0, 0, 128, 64, bitmap_intro);
 }
 
-void OledDisplay::show() {
-    display.sendBuffer();
-}
 // ----------------------------------------------------------
 // Draw category menu screen
 // ----------------------------------------------------------
 
-void OledDisplay::drawCategoryMenu(int selected, int previous, int next, int totalCategories) {
+void OledDisplay::drawCategoryMenu(int selected, int previous, int next,
+                                   int totalCategories) {
     display.drawXBMP(0, 22, 128, 21, bitmap_item_sel_outline);
 
     display.setFont(u8g_font_7x14);
@@ -43,7 +47,8 @@ void OledDisplay::drawCategoryMenu(int selected, int previous, int next, int tot
     display.drawXBMP(4, 46, 16, 16, icons[next % 8]);
 
     display.drawXBMP(128 - 8, 0, 8, 64, bitmap_scrollbar_background);
-    display.drawBox(125, 64 / totalCategories * selected, 3, 64 / totalCategories);
+    display.drawBox(125, 64 / totalCategories * selected, 3,
+                    64 / totalCategories);
 
     display.setFont(u8g2_font_5x8_tf);
     display.drawStr(108, 63, "C.J.");
@@ -54,8 +59,9 @@ void OledDisplay::drawCategoryMenu(int selected, int previous, int next, int tot
 // ----------------------------------------------------------
 // Draw signal submenu
 // ----------------------------------------------------------
-void OledDisplay::drawSignalMenu(const char* categoryName, SubGHzSignal* signals, 
-                    int selected, int previous, int next, int totalSignals) {
+void OledDisplay::drawSignalMenu(const char *categoryName,
+                                 SubGHzSignal *signals, int selected,
+                                 int previous, int next, int totalSignals) {
 
     display.setFont(u8g2_font_6x10_tf);
     display.drawStr(5, 10, categoryName);
@@ -85,7 +91,8 @@ void OledDisplay::drawSignalMenu(const char* categoryName, SubGHzSignal* signals
 // ----------------------------------------------------------
 // Draw signal details
 // ----------------------------------------------------------
-void OledDisplay::drawSignalDetails(const char* categoryName, SubGHzSignal* signal) {
+void OledDisplay::drawSignalDetails(const char *categoryName,
+                                    SubGHzSignal *signal) {
     display.setFont(u8g2_font_7x13B_tf);
     display.drawStr(5, 12, signal->name);
     display.drawLine(0, 14, 128, 14);
@@ -111,7 +118,7 @@ void OledDisplay::drawSignalDetails(const char* categoryName, SubGHzSignal* sign
 // ----------------------------------------------------------
 // Draw transmit screen
 // ----------------------------------------------------------
-void OledDisplay::drawTransmitting(const char* signalName, float frequency) {
+void OledDisplay::drawTransmitting(const char *signalName, float frequency) {
     display.setFont(u8g2_font_9x15B_tf);
     display.drawStr(15, 25, "SENDING...");
 
@@ -123,5 +130,3 @@ void OledDisplay::drawTransmitting(const char* signalName, float frequency) {
     display.setFont(u8g2_font_6x10_tf);
     display.drawStr(30, 58, freq_str);
 }
-
-

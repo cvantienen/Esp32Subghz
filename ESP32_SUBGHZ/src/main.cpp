@@ -2,29 +2,22 @@
 #include <U8g2lib.h>
 
 #include "button.h"
+#include "display.h"
 #include "icon.h"
+#include "menu.h"
 #include "radio.h"
 #include "signals.h"
-#include "display.h"
-#include "menu.h"
-
 
 // =============================================================================
 // ICONS (for display)
 // =============================================================================
 const unsigned char *bitmap_icons[8] = {
-    bitmap_icon_3dcube,
-    bitmap_icon_battery,
-    bitmap_icon_gauges,
-    bitmap_icon_fireworks,
-    bitmap_icon_gps_speed,
-    bitmap_icon_knob_over_oled,
-    bitmap_icon_parksensor,
-    bitmap_icon_turbo
-};
+    bitmap_icon_3dcube,     bitmap_icon_battery,   bitmap_icon_gauges,
+    bitmap_icon_fireworks,  bitmap_icon_gps_speed, bitmap_icon_knob_over_oled,
+    bitmap_icon_parksensor, bitmap_icon_turbo};
 
 // =============================================================================
-// BUTTONS 
+// BUTTONS
 // =============================================================================
 Button button_up(BUTTON_UP_PIN);
 Button button_select(BUTTON_SELECT_PIN);
@@ -49,8 +42,8 @@ Menu menu;
 // =============================================================================
 // SETUP
 // =============================================================================
-void setup()
-{
+void setup() {
+    delay(200);
     Serial.begin(115200);
     Serial.println("\n[setup] Booting ESP32...");
 
@@ -58,55 +51,58 @@ void setup()
     button_select.init();
     button_down.init();
     button_back.init();
+    delay(200);
 
-    radio.initCC1101();
     display.init();
-
+    delay(200);
+    display.drawIntroScreen();
+    display.show();
+    delay(1500);
+    radio.initCC1101();
+    delay(200);
     menu.setCurrentScreen(MenuScreen::CATEGORIES);
     menu.setCategoryCount(NUM_OF_CATEGORIES);
+    Serial.println("[setup] Setup complete.");
 }
 
-// =============================================================================
-// MAIN LOOP
-// =============================================================================
-// The loop does 3 things every frame:
-//   1. HANDLE INPUT  - Check buttons, update state
-//   2. CALCULATE     - Compute prev/next indices for display
-//   3. DRAW          - Render the current screen
-//
-// REFACTOR: Split into menu.handleInput(), menu.update(), display.draw(menu)
-
-void loop()
-{
+void loop() {
     // =========================================================================
     // HANDLE INPUT (per-screen button logic)
-    switch (menu.getCurrentScreen())
-    {
-        case MenuScreen::CATEGORIES:
-            if (button_up.pressed())   menu.categoryUp();
-            if (button_down.pressed()) menu.categoryDown();
-            if (button_select.pressed()) {
-                menu.setCurrentScreen(MenuScreen::SIGNALS);
-                menu.setSignalCount(SIGNAL_CATEGORIES[menu.getSelectedCategory()].count);
-                menu.resetSignal();
-            }
-            break;
+    switch (menu.getCurrentScreen()) {
+    case MenuScreen::CATEGORIES:
+        if (button_up.pressed())
+            menu.categoryUp();
+        if (button_down.pressed())
+            menu.categoryDown();
+        if (button_select.pressed()) {
+            menu.setCurrentScreen(MenuScreen::SIGNALS);
+            menu.setSignalCount(
+                SIGNAL_CATEGORIES[menu.getSelectedCategory()].count);
+            menu.resetSignal();
+        }
+        break;
 
-        case MenuScreen::SIGNALS:
-            if (button_up.pressed())   menu.signalUp();
-            if (button_down.pressed()) menu.signalDown();
-            if (button_back.pressed()) menu.setCurrentScreen(MenuScreen::CATEGORIES);
-            if (button_select.pressed()) menu.setCurrentScreen(MenuScreen::DETAILS);
-            break;
+    case MenuScreen::SIGNALS:
+        if (button_up.pressed())
+            menu.signalUp();
+        if (button_down.pressed())
+            menu.signalDown();
+        if (button_back.pressed())
+            menu.setCurrentScreen(MenuScreen::CATEGORIES);
+        if (button_select.pressed())
+            menu.setCurrentScreen(MenuScreen::DETAILS);
+        break;
 
-        case MenuScreen::DETAILS:
-            if (button_back.pressed())   menu.setCurrentScreen(MenuScreen::SIGNALS);
-            if (button_select.pressed()) menu.setCurrentScreen(MenuScreen::TRANSMIT);
-            break;
+    case MenuScreen::DETAILS:
+        if (button_back.pressed())
+            menu.setCurrentScreen(MenuScreen::SIGNALS);
+        if (button_select.pressed())
+            menu.setCurrentScreen(MenuScreen::TRANSMIT);
+        break;
 
-        case MenuScreen::TRANSMIT:
-            // Handled in draw section
-            break;
+    case MenuScreen::TRANSMIT:
+        // Handled in draw section
+        break;
     }
 
     // =========================================================================
@@ -114,39 +110,29 @@ void loop()
     // Clear buffer, draw based on current_screen, then show.
     display.clear();
 
-    if (menu.getCurrentScreen() == MenuScreen::CATEGORIES)
-    {
+    if (menu.getCurrentScreen() == MenuScreen::CATEGORIES) {
         // Draw category list with prev/current/next visible
-        display.drawCategoryMenu(
-            menu.getSelectedCategory(),
-            menu.getCategoryPrev(),
-            menu.getCategoryNext(),
-            NUM_OF_CATEGORIES
-        );
-    }
-    else if (menu.getCurrentScreen() == MenuScreen::SIGNALS)
-    {   
+        display.drawCategoryMenu(menu.getSelectedCategory(),
+                                 menu.getCategoryPrev(), menu.getCategoryNext(),
+                                 NUM_OF_CATEGORIES);
+    } else if (menu.getCurrentScreen() == MenuScreen::SIGNALS) {
         // Draw signal list for selected category
         display.drawSignalMenu(
             SIGNAL_CATEGORIES[menu.getSelectedCategory()].name,
             SIGNAL_CATEGORIES[menu.getSelectedCategory()].signals,
-            menu.getSelectedSignal(),
-            menu.getSignalPrev(),
-            menu.getSignalNext(),
-            menu.getSignalCount()
-        );
-    }
-    else if (menu.getCurrentScreen() == MenuScreen::DETAILS)
-    {
+            menu.getSelectedSignal(), menu.getSignalPrev(),
+            menu.getSignalNext(), menu.getSignalCount());
+    } else if (menu.getCurrentScreen() == MenuScreen::DETAILS) {
         // Get the selected signal
-        SubGHzSignal *signal = &SIGNAL_CATEGORIES[menu.getSelectedCategory()].signals[menu.getSelectedSignal()];
+        SubGHzSignal *signal = &SIGNAL_CATEGORIES[menu.getSelectedCategory()]
+                                    .signals[menu.getSelectedSignal()];
         // Draw signal details
-        display.drawSignalDetails(SIGNAL_CATEGORIES[menu.getSelectedCategory()].name, signal);
-    }
-    else if (menu.getCurrentScreen() == MenuScreen::TRANSMIT)
-    {
+        display.drawSignalDetails(
+            SIGNAL_CATEGORIES[menu.getSelectedCategory()].name, signal);
+    } else if (menu.getCurrentScreen() == MenuScreen::TRANSMIT) {
         // Get the selected signal
-        SubGHzSignal *signal = &SIGNAL_CATEGORIES[menu.getSelectedCategory()].signals[menu.getSelectedSignal()];
+        SubGHzSignal *signal = &SIGNAL_CATEGORIES[menu.getSelectedCategory()]
+                                    .signals[menu.getSelectedSignal()];
         // Draw transmitting screen
         display.drawTransmitting(signal->name, signal->frequency);
         // Transmit the signal

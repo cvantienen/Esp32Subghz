@@ -7,15 +7,15 @@
 // ==================== STRUCT DEFINITIONS ====================
 
 struct SubGHzSignal {
-    const char* name;           // String stored in flash
-    const int16_t* samples;     // Pointer to PROGMEM array
+    const char *name;       // String stored in flash
+    const int16_t *samples; // Pointer to PROGMEM array
     uint16_t length;
     float frequency;
 };
 
 struct SubghzSignalList {
-    const char* name;
-    SubGHzSignal* signals;
+    const char *name;
+    SubGHzSignal *signals;
     uint8_t count;
 };
 
