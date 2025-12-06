@@ -29,21 +29,28 @@ const int16_t samples_garage_door2[] PROGMEM = {360,  -1080, 360,
 // ==================== SIGNAL MENU STRUCTURE ====================
 
 SubGHzSignal TOUCHTUNES_SIGNALS[] = {
-    {"TT: P1", samples_touchtunes_p1, LENGTH_SAMPLES_TT_P1, 433.92},
-    {"TT: P2", samples_touchtunes_p2, LENGTH_SAMPLES_TT_P2, 433.92},
-    {"TT: P3", samples_touchtunes_p3, LENGTH_SAMPLES_TT_P3, 433.92}};
+    {"Power", "Turn Power On/Off", samples_touchtunes_p1, LENGTH_SAMPLES_TT_P1,
+     433.92},
+    {"Pause", "Stop Music", samples_touchtunes_p2, LENGTH_SAMPLES_TT_P2,
+     433.92},
+    {"Skip", "Skip Track", samples_touchtunes_p3, LENGTH_SAMPLES_TT_P3,
+     433.92}};
 const uint8_t NUM_TOUCHTUNES =
     sizeof(TOUCHTUNES_SIGNALS) / sizeof(SubGHzSignal);
 
 SubGHzSignal CAR_SIGNALS[] = {
-    {"Unlock", samples_car_unlock, LENGTH_SAMPLES_CAR_UNLOCK, 315.00},
-    {"Lock", samples_car_lock, LENGTH_SAMPLES_CAR_LOCK, 315.00},
-    {"Trunk", samples_car_trunk, LENGTH_SAMPLES_CAR_TRUNK, 315.00}};
+    {"Unlock", "Unlock Car", samples_car_unlock, LENGTH_SAMPLES_CAR_UNLOCK,
+     315.00},
+    {"Lock", "Lock Car", samples_car_lock, LENGTH_SAMPLES_CAR_LOCK, 315.00},
+    {"Trunk", "Open Trunk", samples_car_trunk, LENGTH_SAMPLES_CAR_TRUNK,
+     315.00}};
 const uint8_t NUM_CAR = sizeof(CAR_SIGNALS) / sizeof(SubGHzSignal);
 
 SubGHzSignal GARAGE_SIGNALS[] = {
-    {"Door 1", samples_garage_door1, LENGTH_SAMPLES_GARAGE_DOOR1, 433.92},
-    {"Door 2", samples_garage_door2, LENGTH_SAMPLES_GARAGE_DOOR2, 433.92}};
+    {"Door 1", "Open Garage Door 1", samples_garage_door1,
+     LENGTH_SAMPLES_GARAGE_DOOR1, 433.92},
+    {"Door 2", "Open Garage Door 2", samples_garage_door2,
+     LENGTH_SAMPLES_GARAGE_DOOR2, 433.92}};
 const uint8_t NUM_GARAGE = sizeof(GARAGE_SIGNALS) / sizeof(SubGHzSignal);
 
 // ==================== TOP-LEVEL CATEGORIES ====================

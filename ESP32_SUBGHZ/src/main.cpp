@@ -8,6 +8,12 @@
 #include "radio.h"
 #include "signals.h"
 
+// FPS COUNTER (add near the top, after includes)
+// =============================================================================
+unsigned long lastFpsTime = 0;
+int frameCount = 0;
+int currentFps = 0;
+
 // =============================================================================
 // ICONS (for display)
 // =============================================================================
@@ -57,7 +63,7 @@ void setup() {
     delay(50);
     display.init();
     delay(50);
-
+    display.clear();
     display.drawIntroScreen();
     display.show();
     delay(1500);
@@ -68,6 +74,15 @@ void setup() {
 }
 
 void loop() {
+    // FPS COUNTER
+    frameCount++;
+    if (millis() - lastFpsTime >= 1000) {
+        currentFps = frameCount;
+        frameCount = 0;
+        lastFpsTime = millis();
+        Serial.printf("FPS: %d\n", currentFps);  // Print to Serial Monitor
+        
+    }
     // =========================================================================
     // HANDLE INPUT (per-screen button logic)
     switch (menu.getCurrentScreen()) {
@@ -103,7 +118,6 @@ void loop() {
         break;
 
     case MenuScreen::TRANSMIT:
-        // Handled in draw section
         break;
     }
 
@@ -144,5 +158,4 @@ void loop() {
     }
 
     display.show();
-    delay(10);
 }

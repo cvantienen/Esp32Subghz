@@ -8,6 +8,7 @@
 
 struct SubGHzSignal {
     const char *name;       // String stored in flash
+    const char *desc;       // Description stored in flash
     const int16_t *samples; // Pointer to PROGMEM array
     uint16_t length;
     float frequency;

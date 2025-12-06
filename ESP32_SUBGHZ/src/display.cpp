@@ -23,7 +23,8 @@ void OledDisplay::show() { display.sendBuffer(); }
 // Draw intro screen
 // ----------------------------------------------------------
 void OledDisplay::drawIntroScreen() {
-    display.drawXBMP(0, 0, 128, 64, bitmap_intro);
+    display.setFont(u8g_font_7x14);
+    display.drawXBM(0, 0, 128, 64, intro_bitmap);
 }
 
 // ----------------------------------------------------------
@@ -50,8 +51,10 @@ void OledDisplay::drawCategoryMenu(int selected, int previous, int next,
     display.drawBox(125, 64 / totalCategories * selected, 3,
                     64 / totalCategories);
 
+    // Bobbing signature
     display.setFont(u8g2_font_5x8_tf);
-    display.drawStr(108, 63, "C.J.");
+    int bob = (int)(sin(millis() / 300.0) * 3);  // Bob ±3 pixels
+    display.drawStr(108, 60 + bob, "C.J.");
 
     //
 }
@@ -63,29 +66,44 @@ void OledDisplay::drawSignalMenu(const char *categoryName,
                                  SubGHzSignal *signals, int selected,
                                  int previous, int next, int totalSignals) {
 
+    // ─── HEADER BAR ───────────────────────────────────────
     display.setFont(u8g2_font_6x10_tf);
-    display.drawStr(5, 10, categoryName);
-    display.drawLine(0, 12, 128, 12);
+    display.drawStr(4, 9, categoryName);
+    display.drawHLine(0, 12, 120);
 
-    display.drawFrame(2, 18, 124, 18);
-
-    display.setFont(u8g2_font_6x10_tf);
-    display.drawStr(8, 26, signals[previous].name);
-
-    display.setFont(u8g2_font_7x13B_tf);
-    display.drawStr(8, 46, signals[selected].name);
-
+    // ─── PREVIOUS ITEM (dimmed, smaller) ──────────────────
     display.setFont(u8g2_font_5x8_tf);
-    char freq_str[20];
-    snprintf(freq_str, 20, "%.2f MHz", signals[selected].frequency);
-    display.drawStr(8, 56, freq_str);
+    display.drawStr(6, 22, signals[previous].name);
 
-    display.setFont(u8g2_font_6x10_tf);
-    display.drawStr(8, 66, signals[next].name);
+    // ─── SELECTED ITEM CARD ───────────────────────────────
+    // Rounded selection box
+    display.drawRFrame(2, 25, 118, 22, 3);
 
-    display.drawFrame(122, 14, 4, 48);
-    int scrollbar_pos = map(selected, 0, totalSignals - 1, 0, 40);
-    display.drawBox(123, 15 + scrollbar_pos, 2, 6);
+    // Selected signal name (bold)
+    display.setFont(u8g2_font_7x13B_tf);
+    display.drawStr(8, 37, signals[selected].name);
+
+    // Description (smaller, under name)
+    display.setFont(u8g2_font_5x7_tf);
+    display.drawStr(8, 45, signals[selected].desc);
+
+    // Small selection indicator
+    display.drawTriangle(120, 33, 116, 30, 116, 36);
+
+    // ─── NEXT ITEM (dimmed, smaller) ──────────────────────
+    display.setFont(u8g2_font_5x8_tf);
+    display.drawStr(6, 58, signals[next].name);
+
+    // ─── SCROLLBAR ────────────────────────────────────────
+    // Track
+    display.drawVLine(125, 14, 48);
+
+    // Thumb position
+    int thumb_y = 14;
+    if (totalSignals > 1) {
+        thumb_y = map(selected, 0, totalSignals - 1, 14, 56);
+    }
+    display.drawBox(124, thumb_y, 3, 6);
 }
 
 // ----------------------------------------------------------
@@ -130,3 +148,4 @@ void OledDisplay::drawTransmitting(const char *signalName, float frequency) {
     display.setFont(u8g2_font_6x10_tf);
     display.drawStr(30, 58, freq_str);
 }
+
