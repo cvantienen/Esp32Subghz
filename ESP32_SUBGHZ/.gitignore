@@ -3,3 +3,15 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+.mypycache
+.cache
+.pytest_cache
+build/
+*.bin
+.pio
+ES/.ruff_cache/
+.idea/
+*.elf
+*.map   
+/scripts/.ruff_cache/
+/scripts/venv/

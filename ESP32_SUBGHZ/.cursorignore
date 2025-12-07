@@ -1,0 +1,8 @@
+.vscode
+.git
+.github
+.cursorignore
+/flipper_signals
+.pio
+.vscode
+.mypycache

@@ -22,6 +22,13 @@ class OledDisplay {
 
     void drawIntroScreen();
 
+    // OTA Display methods
+    void drawOTAScreen(const char* ip, const char* status);
+    void drawProgressBar(const char* label, uint8_t progress);
+    void drawCenteredText(const char* line1, const char* line2);
+
+// ... existing code ...
+
     void drawCategoryMenu(int selected, int previous, int next,
                           int totalCategories);
 
