@@ -26,6 +26,42 @@ void OledDisplay::drawIntroScreen() {
     display.setFont(u8g_font_7x14);
     display.drawXBM(0, 0, 128, 64, intro_bitmap);
 }
+// ----------------------------------------------------------
+// Draw OTA screen TODO: Refactor out
+// ----------------------------------------------------------
+void OledDisplay::drawOTAScreen(const char* ip, const char* status) {
+    display.setFont(u8g2_font_6x10_tf);
+    display.drawStr(0, 10, "=== OTA MODE ===");
+    display.drawStr(0, 25, "IP:");
+    display.drawStr(20, 25, ip);
+    display.drawStr(0, 40, "Status:");
+    display.drawStr(48, 40, status);
+}
+
+void OledDisplay::drawProgressBar(const char* label, uint8_t progress) {
+    display.setFont(u8g2_font_6x10_tf);
+    display.drawStr(0, 15, label);
+
+    // Progress bar outline
+    display.drawFrame(0, 25, 128, 16);
+
+    // Progress bar fill
+    uint8_t fillWidth = (progress * 124) / 100;
+    display.drawBox(2, 27, fillWidth, 12);
+
+    // Percentage text
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d%%", progress);
+    display.drawStr(55, 55, buf);
+}
+
+void OledDisplay::drawCenteredText(const char* line1, const char* line2) {
+    display.setFont(u8g2_font_6x10_tf);
+    uint8_t w1 = display.getStrWidth(line1);
+    uint8_t w2 = display.getStrWidth(line2);
+    display.drawStr((128 - w1) / 2, 28, line1);
+    display.drawStr((128 - w2) / 2, 44, line2);
+}
 
 // ----------------------------------------------------------
 // Draw category menu screen
@@ -149,45 +185,6 @@ void OledDisplay::drawTransmitting(const char *signalName, float frequency) {
     display.drawStr(30, 58, freq_str);
 }
 
-// ----------------------------------------------------------
-// Draw OTA screen TODO: Refactor out
-// ----------------------------------------------------------
-void OledDisplay::drawOTAScreen(const char* ip, const char* status) {
-    display.setFont(u8g2_font_6x10_tf);
-    display.drawStr(0, 10, "=== OTA MODE ===");
-    display.drawStr(0, 25, "IP:");
-    display.drawStr(20, 25, ip);
-    display.drawStr(0, 40, "Status:");
-    display.drawStr(48, 40, status);
-    display.drawStr(0, 55, "http://");
-    display.drawStr(42, 55, ip);
-    display.drawStr(0, 64, "/update");
-}
-
-void OledDisplay::drawProgressBar(const char* label, uint8_t progress) {
-    display.setFont(u8g2_font_6x10_tf);
-    display.drawStr(0, 15, label);
-
-    // Progress bar outline
-    display.drawFrame(0, 25, 128, 16);
-
-    // Progress bar fill
-    uint8_t fillWidth = (progress * 124) / 100;
-    display.drawBox(2, 27, fillWidth, 12);
-
-    // Percentage text
-    char buf[8];
-    snprintf(buf, sizeof(buf), "%d%%", progress);
-    display.drawStr(55, 55, buf);
-}
-
-void OledDisplay::drawCenteredText(const char* line1, const char* line2) {
-    display.setFont(u8g2_font_6x10_tf);
-    uint8_t w1 = display.getStrWidth(line1);
-    uint8_t w2 = display.getStrWidth(line2);
-    display.drawStr((128 - w1) / 2, 28, line1);
-    display.drawStr((128 - w2) / 2, 44, line2);
-}
 
 
 

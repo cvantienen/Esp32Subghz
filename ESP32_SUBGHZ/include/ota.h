@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 // =============================================================================
-// OTA CONFIGURATION
+// OTA CONFIGURATION - Simple PlatformIO-style OTA
 // =============================================================================
 
 // WiFi credentials - CHANGE THESE!
@@ -15,7 +15,6 @@
 #define OTA_HOSTNAME "esp32-subghz"
 #define OTA_PASSWORD "your_ota_password"  // For ArduinoOTA security
 #define WIFI_TIMEOUT_MS 15000             // 15 second connection timeout
-#define OTA_IDLE_TIMEOUT_MS 300000        // 5 minute OTA mode timeout
 
 // =============================================================================
 // OTA STATE
@@ -32,7 +31,7 @@ enum class OTAState {
 };
 
 // =============================================================================
-// OTA MANAGER CLASS
+// OTA MANAGER CLASS - Simplified to match PlatformIO example
 // =============================================================================
 
 class OTAManager {
@@ -52,24 +51,13 @@ class OTAManager {
     bool isActive() const { return state_ != OTAState::IDLE; }
     bool isUpdating() const { return state_ == OTAState::UPDATING; }
 
-    // Callbacks (optional - set before begin())
-    void setProgressCallback(void (*callback)(uint8_t progress));
-    void setStartCallback(void (*callback)());
-    void setEndCallback(void (*callback)(bool success));
-
    private:
     OTAState state_;
     uint8_t progress_;
     unsigned long connectStartTime_;
-    unsigned long lastActivityTime_;
     char ipAddress_[16];
 
-    void (*progressCallback_)(uint8_t);
-    void (*startCallback_)();
-    void (*endCallback_)(bool);
-
     void setupArduinoOTA();
-    void setupElegantOTA();
 };
 
 // Global OTA manager instance

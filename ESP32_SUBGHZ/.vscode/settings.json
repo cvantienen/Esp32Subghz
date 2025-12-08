@@ -5,6 +5,9 @@
     "editor.fontFamily": "Consolas, 'Fira Code', 'Courier New', monospace",
     "editor.fontLigatures": true,
     "editor.fontSize": 12,
+    "terminal.integrated.env.linux": {
+    "PATH": "/usr/local/bin:/usr/bin:/bin:${env:PATH}"
+},
     "workbench.colorCustomizations": {
 
 },
@@ -29,4 +32,5 @@
     "[c]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     }
+    
 }
