@@ -1,3 +1,7 @@
 {
-    "cmake.sourceDirectory": "/home/bidoof/Code/Esp32Subghz/ESP32_SUBGHZ"
+    "cmake.sourceDirectory": "/home/bidoof/Code/Esp32Subghz",
+    "black-formatter.args": [
+        "--line-length",
+        "78"
+    ],
 }
