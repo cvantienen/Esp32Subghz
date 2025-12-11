@@ -21,8 +21,8 @@ enum class MenuScreen : uint8_t {
     CATEGORIES, // List of signal categories
     SIGNALS,    // Signals within selected category
     DETAILS,    // Info about selected signal
-    TRANSMIT,    // Sending signal
-    OTA_MODE,         // OTA update
+    TRANSMIT,   // Sending signal
+    OTA_MODE,   // OTA update
 };
 
 class Menu {

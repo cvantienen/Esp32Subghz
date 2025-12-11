@@ -29,16 +29,8 @@ void OledDisplay::drawIntroScreen() {
 // ----------------------------------------------------------
 // Draw OTA screen TODO: Refactor out
 // ----------------------------------------------------------
-void OledDisplay::drawOTAScreen(const char* ip, const char* status) {
-    display.setFont(u8g2_font_6x10_tf);
-    display.drawStr(0, 10, "=== OTA MODE ===");
-    display.drawStr(0, 25, "IP:");
-    display.drawStr(20, 25, ip);
-    display.drawStr(0, 40, "Status:");
-    display.drawStr(48, 40, status);
-}
 
-void OledDisplay::drawProgressBar(const char* label, uint8_t progress) {
+void OledDisplay::drawProgressBar(const char *label, uint8_t progress) {
     display.setFont(u8g2_font_6x10_tf);
     display.drawStr(0, 15, label);
 
@@ -55,7 +47,7 @@ void OledDisplay::drawProgressBar(const char* label, uint8_t progress) {
     display.drawStr(55, 55, buf);
 }
 
-void OledDisplay::drawCenteredText(const char* line1, const char* line2) {
+void OledDisplay::drawCenteredText(const char *line1, const char *line2) {
     display.setFont(u8g2_font_6x10_tf);
     uint8_t w1 = display.getStrWidth(line1);
     uint8_t w2 = display.getStrWidth(line2);
@@ -89,7 +81,7 @@ void OledDisplay::drawCategoryMenu(int selected, int previous, int next,
 
     // Bobbing signature
     display.setFont(u8g2_font_5x8_tf);
-    int bob = (int)(sin(millis() / 300.0) * 3);  // Bob ±3 pixels
+    int bob = (int)(sin(millis() / 300.0) * 3); // Bob ±3 pixels
     display.drawXBMP(108, 45 + bob, 16, 16, mini_ghost_bitmap);
 
     //
@@ -184,8 +176,3 @@ void OledDisplay::drawTransmitting(const char *signalName, float frequency) {
     display.setFont(u8g2_font_6x10_tf);
     display.drawStr(30, 58, freq_str);
 }
-
-
-
-
-

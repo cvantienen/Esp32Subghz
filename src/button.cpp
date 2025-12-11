@@ -30,6 +30,4 @@ bool Button::pressed() {
     return false;
 }
 
-bool Button::held() {
-    return  (digitalRead(pin) == LOW);
-}
+bool Button::held() { return (digitalRead(pin) == LOW); }
