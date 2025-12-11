@@ -34,7 +34,7 @@
     },
     "markdown-preview-enhanced.previewTheme": "atom-dark.css",
     "redhat.telemetry.enabled": false,
-    "workbench.iconTheme": "bearded-icons",
+    "workbench.iconTheme": "developer-icon-theme",
     "gitlens.ai.model": "vscode",
     "gitlens.ai.vscode.model": "copilot:gpt-4.1",
     "errorLens.enabled": false,

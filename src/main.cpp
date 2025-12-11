@@ -3,7 +3,6 @@
 #include <Wire.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
-#include <freertos/semphr.h>
 #include <freertos/task.h>
 
 #include "button.h"
@@ -17,10 +16,32 @@
 // =============================================================================
 // CONSTANTS
 // =============================================================================
-#define BUTTON_SCAN_DELAY_MS 10
-#define DISPLAY_REFRESH_MS 50
+#define BUTTON_SCAN_DELAY_MS 5
+#define DISPLAY_REFRESH_MS 33 // 30 FPS (1000ms / 30 = 33.3ms)
 #define RADIO_CHECK_DELAY_MS 100
-#define QUEUE_SIZE 10
+#define QUEUE_SIZE 20
+
+// =============================================================================
+// MENU STATE STRUCTURE (sent via queue - no mutex needed!)
+// =============================================================================
+struct MenuState {
+    MenuScreen screen;
+    int8_t selectedCategory;
+    int8_t selectedSignal;
+    int8_t categoryPrev;
+    int8_t categoryNext;
+    int8_t signalPrev;
+    int8_t signalNext;
+    int8_t signalCount;
+};
+
+// =============================================================================
+// TRANSMIT REQUEST STRUCTURE (includes menu state)
+// =============================================================================
+struct TransmitRequest {
+    int8_t category;
+    int8_t signalIndex;
+};
 
 // =============================================================================
 // GLOBAL OBJECTS
@@ -37,175 +58,143 @@ Button button_back(BUTTON_BACK_PIN);
 
 SubghzRadio radio;
 OledDisplay display(bitmap_icons);
-Menu menu;
+Menu menu; // Only loop() modifies this - no mutex needed!
 
 // =============================================================================
-// FREERTOS QUEUES & MUTEXES
+// FREERTOS QUEUES (all communication via queues - no mutex!)
 // =============================================================================
 QueueHandle_t buttonQueue = NULL;
-QueueHandle_t transmitRequestQueue = NULL;
-QueueHandle_t transmitCompleteQueue = NULL;
-SemaphoreHandle_t menuMutex = NULL;  // Protect menu access
+QueueHandle_t menuStateQueue = NULL; // loop() → DisplayTask: menu state
+QueueHandle_t transmitRequestQueue =
+    NULL; // loop() → RadioTask: transmit request
+QueueHandle_t transmitCompleteQueue = NULL; // RadioTask → loop(): completion
 
 // =============================================================================
 // TASK 1: BUTTON SCANNER (Producer - sends button events)
 // =============================================================================
 void ButtonTask(void *parameter) {
     for (;;) {
-        uint8_t buttonEvent = 0;
-        
         if (button_up.pressed()) {
-            buttonEvent = 1; // UP
-            xQueueSend(buttonQueue, &buttonEvent, 0);
+            uint8_t buttonEvent = 1;                  // UP
+            xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
         if (button_down.pressed()) {
-            buttonEvent = 2; // DOWN
-            xQueueSend(buttonQueue, &buttonEvent, 0);
+            uint8_t buttonEvent = 2;                  // DOWN
+            xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
         if (button_select.pressed()) {
-            buttonEvent = 3; // SELECT
-            xQueueSend(buttonQueue, &buttonEvent, 0);
+            uint8_t buttonEvent = 3;                  // SELECT
+            xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
         if (button_back.pressed()) {
-            buttonEvent = 4; // BACK
-            xQueueSend(buttonQueue, &buttonEvent, 0);
+            uint8_t buttonEvent = 4;                  // BACK
+            xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
-        
+
         vTaskDelay(BUTTON_SCAN_DELAY_MS / portTICK_PERIOD_MS);
     }
 }
 
 // =============================================================================
-// TASK 2: DISPLAY RENDERER (Consumer - reads menu state, draws screen)
+// TASK 2: DISPLAY RENDERER (30 FPS - receives menu state from queue)
 // =============================================================================
 void DisplayTask(void *parameter) {
-    vTaskDelay(300 / portTICK_PERIOD_MS); // Wait longer for initialization
-    
+    vTaskDelay(300 / portTICK_PERIOD_MS); // Wait for initialization
+
+    MenuState currentState;
+    bool hasState = false;
+
     for (;;) {
-        // Lock menu while reading
-        MenuScreen currentScreen;
-        int selectedCategory, selectedSignal;
-        int categoryPrev, categoryNext;
-        int signalPrev, signalNext, signalCount;
-        
-        if (xSemaphoreTake(menuMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-            // Capture all menu state atomically
-            currentScreen = menu.getCurrentScreen();
-            selectedCategory = menu.getSelectedCategory();
-            selectedSignal = menu.getSelectedSignal();
-            categoryPrev = menu.getCategoryPrev();
-            categoryNext = menu.getCategoryNext();
-            signalPrev = menu.getSignalPrev();
-            signalNext = menu.getSignalNext();
-            signalCount = menu.getSignalCount();
-            xSemaphoreGive(menuMutex);
-        } else {
-            // Couldn't get lock, skip this frame
-            vTaskDelay(DISPLAY_REFRESH_MS / portTICK_PERIOD_MS);
-            continue;
+        // Get latest menu state (non-blocking - use latest available)
+        if (xQueueReceive(menuStateQueue, &currentState, 0) == pdTRUE) {
+            hasState = true;
         }
-        
-        // Now draw with captured values (no lock needed)
-        display.clear();
-        
-        switch (currentScreen) {
-        case MenuScreen::CATEGORIES:
-            display.drawCategoryMenu(
-                selectedCategory,
-                categoryPrev,
-                categoryNext,
-                NUM_OF_CATEGORIES
-            );
-            break;
-            
-        case MenuScreen::SIGNALS:
-            display.drawSignalMenu(
-                SIGNAL_CATEGORIES[selectedCategory].name,
-                SIGNAL_CATEGORIES[selectedCategory].signals,
-                selectedSignal,
-                signalPrev,
-                signalNext,
-                signalCount
-            );
-            break;
-            
-        case MenuScreen::DETAILS: {
-            SubGHzSignal *signal =
-                &SIGNAL_CATEGORIES[selectedCategory].signals[selectedSignal];
-            display.drawSignalDetails(
-                SIGNAL_CATEGORIES[selectedCategory].name,
-                signal
-            );
-            break;
+
+        // Only draw if we have valid state
+        if (hasState) {
+            display.clear();
+
+            switch (currentState.screen) {
+            case MenuScreen::CATEGORIES:
+                display.drawCategoryMenu(
+                    currentState.selectedCategory, currentState.categoryPrev,
+                    currentState.categoryNext, NUM_OF_CATEGORIES);
+                break;
+
+            case MenuScreen::SIGNALS:
+                display.drawSignalMenu(
+                    SIGNAL_CATEGORIES[currentState.selectedCategory].name,
+                    SIGNAL_CATEGORIES[currentState.selectedCategory].signals,
+                    currentState.selectedSignal, currentState.signalPrev,
+                    currentState.signalNext, currentState.signalCount);
+                break;
+
+            case MenuScreen::DETAILS: {
+                SubGHzSignal *signal =
+                    &SIGNAL_CATEGORIES[currentState.selectedCategory]
+                         .signals[currentState.selectedSignal];
+                display.drawSignalDetails(
+                    SIGNAL_CATEGORIES[currentState.selectedCategory].name,
+                    signal);
+                break;
+            }
+
+            case MenuScreen::TRANSMIT: {
+                SubGHzSignal *signal =
+                    &SIGNAL_CATEGORIES[currentState.selectedCategory]
+                         .signals[currentState.selectedSignal];
+                display.drawTransmitting(signal->name, signal->frequency);
+                break;
+            }
+
+            default:
+                break;
+            }
+
+            display.show();
         }
-        
-        case MenuScreen::TRANSMIT: {
-            SubGHzSignal *signal =
-                &SIGNAL_CATEGORIES[selectedCategory].signals[selectedSignal];
-            display.drawTransmitting(signal->name, signal->frequency);
-            break;
-        }
-        
-        default:
-            break;
-        }
-        
-        display.show();
+
         vTaskDelay(DISPLAY_REFRESH_MS / portTICK_PERIOD_MS);
     }
 }
 
 // =============================================================================
-// TASK 3: RADIO HANDLER (Consumer - waits for transmit requests from queue)
+// TASK 3: RADIO HANDLER (receives transmit requests from queue)
 // =============================================================================
 void RadioTask(void *parameter) {
     for (;;) {
-        uint8_t transmitRequest;
-        
-        // Wait for transmit request from queue (blocking)
-        if (xQueueReceive(transmitRequestQueue, &transmitRequest, 
-                         RADIO_CHECK_DELAY_MS / portTICK_PERIOD_MS) == pdTRUE) {
-            
-            // Check if still on TRANSMIT screen (with mutex)
-            bool shouldTransmit = false;
-            int category = 0;
-            int sigIndex = 0;
-            
-            if (xSemaphoreTake(menuMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-                if (menu.getCurrentScreen() == MenuScreen::TRANSMIT) {
-                    shouldTransmit = true;
-                    category = menu.getSelectedCategory();
-                    sigIndex = menu.getSelectedSignal();
-                }
-                xSemaphoreGive(menuMutex);
-            }
-            
-            if (shouldTransmit) {
-                SubGHzSignal *signal =
-                    &SIGNAL_CATEGORIES[category].signals[sigIndex];
-                
-                Serial.println("[RadioTask] Transmission started");
-                radio.transmit(signal->samples, signal->length, signal->frequency);
-                Serial.println("[RadioTask] Transmission complete");
-                
-                // Notify UI that transmission is complete
-                uint8_t complete = 1;
-                xQueueSend(transmitCompleteQueue, &complete, 0);
-            }
+        TransmitRequest request;
+
+        // Wait for transmit request (blocking)
+        if (xQueueReceive(transmitRequestQueue, &request, portMAX_DELAY) ==
+            pdTRUE) {
+
+            SubGHzSignal *signal = &SIGNAL_CATEGORIES[request.category]
+                                        .signals[request.signalIndex];
+
+            Serial.println("[RadioTask] Transmission started");
+            radio.transmit(signal->samples, signal->length, signal->frequency);
+            Serial.println("[RadioTask] Transmission complete");
+
+            // Notify UI that transmission is complete
+            uint8_t complete = 1;
+            xQueueSend(transmitCompleteQueue, &complete, 0);
         }
     }
 }
 
 // =============================================================================
-// MAIN LOOP: UI CONTROLLER (Consumer - processes button events)
+// MAIN LOOP: UI CONTROLLER (owns menu, sends updates via queues)
 // =============================================================================
 void loop() {
     uint8_t buttonEvent;
-    
-    // Process button events from queue
-    if (xQueueReceive(buttonQueue, &buttonEvent, 20 / portTICK_PERIOD_MS)) {
-        // Lock menu while modifying
-        if (xSemaphoreTake(menuMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+    bool menuChanged = true; // Send initial state
+
+    for (;;) {
+        // Process all button events in queue
+        while (xQueueReceive(buttonQueue, &buttonEvent, 0) == pdTRUE) {
+            menuChanged = true; // Menu will change
+
             switch (menu.getCurrentScreen()) {
             case MenuScreen::CATEGORIES:
                 if (buttonEvent == 1) {
@@ -215,12 +204,11 @@ void loop() {
                 } else if (buttonEvent == 3) {
                     menu.setCurrentScreen(MenuScreen::SIGNALS);
                     menu.setSignalCount(
-                        SIGNAL_CATEGORIES[menu.getSelectedCategory()].count
-                    );
+                        SIGNAL_CATEGORIES[menu.getSelectedCategory()].count);
                     menu.resetSignal();
                 }
                 break;
-                
+
             case MenuScreen::SIGNALS:
                 if (buttonEvent == 1) {
                     menu.signalUp();
@@ -232,42 +220,60 @@ void loop() {
                     menu.setCurrentScreen(MenuScreen::DETAILS);
                 }
                 break;
-                
+
             case MenuScreen::DETAILS:
                 if (buttonEvent == 4) {
                     menu.setCurrentScreen(MenuScreen::SIGNALS);
                 } else if (buttonEvent == 3) {
-                    // User selected to transmit - send request to RadioTask
+                    // User selected to transmit
                     menu.setCurrentScreen(MenuScreen::TRANSMIT);
-                    
-                    // Send transmit request to RadioTask via queue
-                    uint8_t request = 1;
+
+                    // Send transmit request with menu state
+                    TransmitRequest request;
+                    request.category = menu.getSelectedCategory();
+                    request.signalIndex = menu.getSelectedSignal();
                     xQueueSend(transmitRequestQueue, &request, 0);
                 }
                 break;
-                
+
             case MenuScreen::TRANSMIT:
                 if (buttonEvent == 4) {
-                    // User cancelled - go back to details
                     menu.setCurrentScreen(MenuScreen::DETAILS);
                 }
                 break;
-                
+
             default:
                 break;
             }
-            xSemaphoreGive(menuMutex);
         }
-    }
-    
-    // Check for transmission complete
-    uint8_t transmitComplete;
-    if (xQueueReceive(transmitCompleteQueue, &transmitComplete, 0)) {
-        // Transmission finished - return to DETAILS screen
-        if (xSemaphoreTake(menuMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+
+        // Check for transmission complete
+        uint8_t transmitComplete;
+        if (xQueueReceive(transmitCompleteQueue, &transmitComplete, 0)) {
             menu.setCurrentScreen(MenuScreen::DETAILS);
-            xSemaphoreGive(menuMutex);
+            menuChanged = true;
         }
+
+        // Send menu state update to DisplayTask (when changed)
+        if (menuChanged) {
+            MenuState state;
+            state.screen = menu.getCurrentScreen();
+            state.selectedCategory = menu.getSelectedCategory();
+            state.selectedSignal = menu.getSelectedSignal();
+            state.categoryPrev = menu.getCategoryPrev();
+            state.categoryNext = menu.getCategoryNext();
+            state.signalPrev = menu.getSignalPrev();
+            state.signalNext = menu.getSignalNext();
+            state.signalCount = menu.getSignalCount();
+
+            // Send to DisplayTask (overwrite if queue full - always latest
+            // state)
+            xQueueOverwrite(menuStateQueue, &state);
+            menuChanged = false;
+        }
+
+        // Small delay to prevent CPU hogging
+        vTaskDelay(5 / portTICK_PERIOD_MS);
     }
 }
 
@@ -279,90 +285,74 @@ void setup() {
     Serial.begin(115200);
     delay(1200);
     Serial.println("\n[setup] Booting ESP32...");
-    
+
     // Initialize I2C FIRST (required for display)
     Serial.println("[setup] Initializing I2C...");
     Wire.begin(); // Default: SDA=21, SCL=22 on ESP32
     delay(200);
     Serial.println("[setup] I2C initialized");
-    
+
     // Initialize hardware
     button_up.init();
     button_select.init();
     button_down.init();
     button_back.init();
     delay(50);
-    
+
     radio.initCC1101();
     delay(50);
-    
+
     // Initialize display
     Serial.println("[setup] Initializing display...");
     display.init();
     delay(200);
+    display.clear();
+    display.drawIntroScreen();
+    display.show();
+    delay(1500);
     Serial.println("[setup] Display initialized");
-    
+
     menu.setCurrentScreen(MenuScreen::CATEGORIES);
     menu.setCategoryCount(NUM_OF_CATEGORIES);
-    
+
     FilesystemHelper::begin(true);
-    
-    // Create mutex for menu protection
-    menuMutex = xSemaphoreCreateMutex();
-    if (menuMutex == NULL) {
-        Serial.println("[ERROR] Failed to create menu mutex!");
-        while (1);
-    }
-    
-    // Create queues
+
+    // Create queues (NO MUTEX NEEDED!)
     buttonQueue = xQueueCreate(QUEUE_SIZE, sizeof(uint8_t));
     if (buttonQueue == NULL) {
         Serial.println("[ERROR] Failed to create button queue!");
-        while (1);
+        while (1)
+            ;
     }
-    
-    transmitRequestQueue = xQueueCreate(QUEUE_SIZE, sizeof(uint8_t));
+
+    // Menu state queue - size 1, always contains latest state
+    menuStateQueue = xQueueCreate(1, sizeof(MenuState));
+    if (menuStateQueue == NULL) {
+        Serial.println("[ERROR] Failed to create menu state queue!");
+        while (1)
+            ;
+    }
+
+    transmitRequestQueue = xQueueCreate(QUEUE_SIZE, sizeof(TransmitRequest));
     if (transmitRequestQueue == NULL) {
         Serial.println("[ERROR] Failed to create transmit request queue!");
-        while (1);
+        while (1)
+            ;
     }
-    
+
     transmitCompleteQueue = xQueueCreate(QUEUE_SIZE, sizeof(uint8_t));
     if (transmitCompleteQueue == NULL) {
         Serial.println("[ERROR] Failed to create transmit complete queue!");
-        while (1);
+        while (1)
+            ;
     }
-    
+
     // Create tasks
-    xTaskCreatePinnedToCore(
-        ButtonTask,
-        "ButtonTask",
-        2500,
-        NULL,
-        3,
-        NULL,
-        1
-    );
-    
-    xTaskCreatePinnedToCore(
-        DisplayTask,
-        "DisplayTask",
-        5000,
-        NULL,
-        2,
-        NULL,
-        1
-    );
-    
-    xTaskCreatePinnedToCore(
-        RadioTask,
-        "RadioTask",
-        6000,
-        NULL,
-        1,
-        NULL,
-        0
-    );
-    
+    xTaskCreatePinnedToCore(ButtonTask, "ButtonTask", 2500, NULL, 3, NULL, 1);
+
+    xTaskCreatePinnedToCore(DisplayTask, "DisplayTask", 5000, NULL, 2, NULL, 1);
+
+    xTaskCreatePinnedToCore(RadioTask, "RadioTask", 6000, NULL, 1, NULL, 0);
+
     Serial.println("[setup] Setup complete!");
 }
