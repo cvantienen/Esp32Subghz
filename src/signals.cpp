@@ -62,3 +62,4 @@ SubghzSignalList SIGNAL_CATEGORIES[] = {
 
 const uint8_t NUM_OF_CATEGORIES =
     sizeof(SIGNAL_CATEGORIES) / sizeof(SubghzSignalList);
+

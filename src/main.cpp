@@ -11,6 +11,7 @@
 #include "icon.h"
 #include "menu.h"
 #include "radio.h"
+#include "animation.h"
 #include "signals.h"
 
 // =============================================================================
@@ -26,6 +27,7 @@
 // =============================================================================
 struct MenuState {
     MenuScreen screen;
+    Animation animation;
     int8_t selectedCategory;
     int8_t selectedSignal;
     int8_t categoryPrev;
@@ -41,6 +43,14 @@ struct MenuState {
 struct TransmitRequest {
     int8_t category;
     int8_t signalIndex;
+};
+
+// =============================================================================
+// ANIMATION STATE STRUCTURE
+// =============================================================================
+struct AnimationState {
+    uint32_t timestamp;
+    uint8_t progress;
 };
 
 // =============================================================================

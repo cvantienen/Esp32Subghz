@@ -21,7 +21,9 @@ def run_flipper_converter(source, target, env):
     print("=" * 60)
 
     result = subprocess.run(
-        [sys.executable, str(converter_script)], cwd=script_dir.parent, capture_output=False
+        [sys.executable, str(converter_script)],
+        cwd=script_dir.parent,
+        capture_output=False,
     )
 
     if result.returncode != 0:
