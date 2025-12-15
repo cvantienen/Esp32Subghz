@@ -33,4 +33,6 @@ extern Animation segwayAnimation;
 // Declare extern object
 extern Animation startMenuAnimation;
 
+extern Animation drakeAnimation;
+
 #endif

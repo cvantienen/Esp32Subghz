@@ -23,6 +23,7 @@ enum class MenuScreen : uint8_t {
     DETAILS,    // Info about selected signal
     TRANSMIT,   // Sending signal
     INTRO,   // OTA update
+    STARTMENU, // Start Menu Sreen
 };
 
 class Menu {

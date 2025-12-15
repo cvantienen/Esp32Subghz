@@ -152,8 +152,11 @@ void DisplayTask(void *parameter) {
             }
             
             case MenuScreen::INTRO: {
-                display.drawMenuIntro(startMenuAnimation);
+                display.drawMenuIntro();
                 break;
+            }
+            case MenuScreen::STARTMENU{
+                display.drawStartMenu(startMenuAnimation)
             }
             default:
                 break;
@@ -253,6 +256,8 @@ void loop() {
                 if (buttonEvent == 3) {
                     menu.setCurrentScreen(MenuScreen::CATEGORIES);
                 }
+                break;
+            case MenuScreen:STARTMENU
             default:
                 break;
             }
@@ -294,7 +299,7 @@ void loop() {
 void setup() {
     delay(200);
     Serial.begin(115200);
-    delay(1200);
+    delay(500);
     Serial.println("\n[setup] Booting ESP32...");
 
     // Initialize I2C FIRST (required for display)
@@ -316,7 +321,7 @@ void setup() {
     // Initialize display
     Serial.println("[setup] Initializing display...");
     display.init();
-    delay(200);
+    delay(50);
     display.clear();
     display.drawIntroScreen();
     display.show();

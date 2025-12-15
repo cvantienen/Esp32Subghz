@@ -1,6 +1,7 @@
 #include "animation.h"
 #include "segway_bitmaps.h"
 #include "startmenu_bitmaps.h"
+#include "drake_bitmaps.h"
 
 
 // =============================================================================
@@ -16,14 +17,14 @@ void Animation::stopAnimation() {
 // UPDATE ANIMATION (call every frame)
 // =============================================================================
 void Animation::updateAnimation() {
-        
+    currentFrame++;
     if (currentFrame >= frameCount) {
         currentFrame = 0;  // Loop back to start
         if (!active) {
             stopAnimation();// Stop if not looping
         }
     }
-    currentFrame++;
+
 }
  
 // =============================================================================
@@ -42,3 +43,4 @@ const unsigned char* Animation::getCurrentFrame() {
 
 Animation segwayAnimation(segwayArray ,segwayFramesCount);
 Animation startMenuAnimation(startMenuArray ,startMenuFramesCount);
+Animation drakeAnimation(drakeArray ,drakeFramesCount);
