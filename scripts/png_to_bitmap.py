@@ -1,6 +1,6 @@
 import sys
 import logging
-from PIL import Image
+from PIL import Image, ImageOps
 from pathlib import Path
 
 # Set up logging
@@ -9,63 +9,109 @@ logger = logging.getLogger(__name__)
 
 IMAGE_WIDTH_BY_HEIGHT = [128, 64]
 
-def clean_image_name(file_name:str)-> str:
+
+def clean_image_name(file_name: str) -> str:
     removed_period = file_name.replace(".", "").strip()
     removed_dash = removed_period.replace("-", "_").strip()
     cleaned_name = removed_dash
     return cleaned_name
 
-def convert_png_to_bitmap_array(image_path):
-    """
-    Converts a PNG image to a bitmap array (1 for black, 0 for white).
-    """
+
+def image_to_u8g2_bitmap(path, invert=False):
+    # Load image
     try:
-        # Open the image using Pillow
-        img = Image.open(image_path)
-        # Convert to black and white
-        img_bnw = img.convert("1")
-        # Resize image to desired dimensions
-        img_resized = img_bnw.resize(IMAGE_WIDTH_BY_HEIGHT)
+        img = Image.open(path).convert("1")  # convert to B/W (1-bit)
+        img_resized = img.resize(IMAGE_WIDTH_BY_HEIGHT)
         logger.info(f"image size{img_resized.size}")
+        width, height = img_resized.size
+        pixels = img_resized.load()
 
-        # image name cleaned
-        image_name = clean_image_name(image_path.stem)
+        u8g2_bitmap = []
 
-        x11_bitmap_array = img_resized.tobitmap(image_name)
-        cpp_bitmap_array = x11_bitmap_array.decode('ascii')
-        logger.info(cpp_bitmap_array)
-        return cpp_bitmap_array
+        # U8g2 expects vertical slices (8 pixels tall per byte)
+        for x in range(width):
+            for y in range(0, height, 8):
+                byte = 0
+                for bit in range(8):
+                    if y + bit < height:
+                        pixel_on = pixels[x, y + bit] == 0  # black pixel
+                        if invert:
+                            pixel_on = not pixel_on
+                        if pixel_on:
+                            byte |= 1 << bit
+                u8g2_bitmap.append(byte)
 
+        return u8g2_bitmap, width, height
     except Exception as e:
-        logger.error(f"Error processing image {image_path}: {e}")
+        logger.error(f"Error processing image {path}: {e}")
         return None
 
 
-def add_comment_to_cpp(bitmap_array, image_name):
-    """
-    Formats a comment and bitmap array for C++ code.
-    """
-    comment = f"// Bitmap generated from {image_name}\n"
+def image_resize(path):
+    # Load image
     try:
-        return f"{comment}{bitmap_array}\n\n"
+        # Ensure RGB
+        img = Image.open(path).convert("RGB")
+        # Invert colors
+        img_resized = img.resize(IMAGE_WIDTH_BY_HEIGHT)
+        img_resized.save(path)
+        logger.info(f"Processed and saved image: {path}")
     except Exception as e:
-        logger.error(f"Error formatting bitmap array: {e}")
+        logger.error(f"Error processing image {path}: {e}")
         return None
+    
 
-def start_header_content(directory_name) -> str:
+def bitmap_to_cpp(data, variable_name="my_bitmap", width=None, height=None):
+    hexbytes = ", ".join(f"0x{b:02X}" for b in data)
+
+    if width is None or height is None:
+        c_array = f"const uint8_t {variable_name}[] PROGMEM = {{\n  {hexbytes}\n}};\n\n"
+        return c_array
+    else:
+        c_array = (
+            f"#define {variable_name}_{width}\n"
+            f"#define {variable_name}_{height}\n"
+            f"const uint8_t {variable_name}[] PROGMEM = {{\n"
+            f"  {hexbytes}\n"
+            f"}};\n\n"
+        )
+
+        return c_array
+
+
+# # ---------- Example Usage -------------
+# input_image = "input.png"
+# data, w, h = image_to_u8g2_bitmap(input_image)
+
+# print("// Width:", w, "Height:", h)
+# print(to_c_array(data, "my_bitmap"))
+
+
+def save_header_file(directory_name, output_header_file, headerfile_content):
     header_content = f"#ifndef {directory_name}_H\n#define {directory_name}_H\n#include <Arduino.h>\n\n"
     header_content += "// -------------------------------\n"
     header_content += "// Icon Bitmaps\n"
     header_content += (
         "// -----------------------------------------------------------\n\n"
     )
-    return header_content
+    header_content += headerfile_content
+    # Finalize the header content
+    header_content += f"#endif // {directory_name}_H\n"
+    # Save the header file
+    try:
+        with open(output_header_file, "w") as header_file:
+            header_file.write(header_content)
+
+        logger.info(f"Header file saved to: {output_header_file}")
+        logger.info(f"image directory:\n{directory_name}\n")
+    except Exception as e:
+        logger.error(f"Error writing to file {output_header_file}: {e}")
 
 
-def process_images_in_directory(input_dir, output_header):
+def process_images_in_directory(input_dir):
     """
-    Processes all PNG images in the given directory and converts them to C++ bitmap arrays.
-    Saves the result to a header file.
+    Processes all PNG images in the given directory
+    and converts them to C++ bitmap arrays.
     """
     # Get a list of all PNG files in the input directory
     input_dir = Path(input_dir)
@@ -74,35 +120,28 @@ def process_images_in_directory(input_dir, output_header):
     if not png_files:
         logger.error(f"No PNG files found in the directory: {input_dir}")
         return
-
-    header_content = start_header_content(input_dir.name)
-    # Process each PNG file
+    header_content = ""
     for image_path in png_files:
-        # image name cleaned
-        image_name = clean_image_name(image_path.stem)
-        # Convert the PNG to a bitmap array
-        bitmap_array = convert_png_to_bitmap_array(image_path)
-        if bitmap_array is None:
-            continue  # Skip files that failed to convert
+        # Resize and invert the image
+        image_resize(image_path)
+        # # image name cleaned
+        # image_name = clean_image_name(image_path.stem)
+        # # Convert the PNG to a bitmap array
+        # bitmap_array, width, height = image_to_u8g2_bitmap(image_path)
+        # if bitmap_array is None:
+        #     continue
 
-        # Format the bitmap array as C++ code
-        formatted_array = add_comment_to_cpp(bitmap_array, image_name)
-        logger.info(f"formatted_array: {formatted_array}")
-        # Add the formatted array to the header content
-        header_content += formatted_array
+        # # Add comments about the image
+        # header_content += f"// Bitmap for {image_path.name}\n"
+        # # Format the bitmap array as C++ code
+        # cpp_array = bitmap_to_cpp(bitmap_array, image_name, width, height)
+        # logger.info(f"cpp_array: {cpp_array}")
+        # # Add the formatted array to the header content
+        # header_content += cpp_array
 
-        logger.info(f"Processed: {image_path.name}-- image name used: {image_name}")
+        # logger.info(f"Processed: {image_path.name}-- image name used: {image_name}")
 
-    # Finalize the header content
-    header_content += "#endif // BITMAPS_H\n"
-
-    # Save the header file
-    try:
-        with open(output_header, "w") as header_file:
-            header_file.write(header_content)
-        logger.info(f"Header file saved to: {output_header}")
-    except Exception as e:
-        logger.error(f"Error writing to file {output_header}: {e}")
+    return header_content
 
 
 def main():
@@ -111,8 +150,13 @@ def main():
     png_dir = current_dir / "animation_png"
     for animation_dir in png_dir.iterdir():
         if animation_dir.is_dir():
-            output_header_path = current_dir / (animation_dir.name + "_bitmaps.h")
-            process_images_in_directory(animation_dir, output_header_path)
+            process_images_in_directory(animation_dir)
+            # output_header_path = current_dir / (animation_dir.name + "_bitmaps.h")
+            #bitmap_arrays = process_images_in_directory(animation_dir)
+            # if bitmap_arrays:
+            #     save_header_file(
+            #         animation_dir.name.upper(), output_header_path, bitmap_arrays
+            #     )
     logger.info("Complete")
 
 

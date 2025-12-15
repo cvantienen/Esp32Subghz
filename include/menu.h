@@ -22,7 +22,7 @@ enum class MenuScreen : uint8_t {
     SIGNALS,    // Signals within selected category
     DETAILS,    // Info about selected signal
     TRANSMIT,   // Sending signal
-    OTA_MODE,   // OTA update
+    INTRO,   // OTA update
 };
 
 class Menu {
@@ -36,7 +36,7 @@ class Menu {
 
   public:
     // Constructor - the MenuScreen object is initialized to CATEGORIES screen
-    Menu() { currentScreen = MenuScreen::CATEGORIES; }
+    Menu() {}
 
     // =============================================================================
     // SET COUNTS - Call these to tell Menu how many items exist

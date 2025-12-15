@@ -1,4 +1,6 @@
 #include "display.h"
+
+
 // ============================================================================
 // DISPLAY CLASS - Handles all screen rendering
 // ============================================================================
@@ -32,7 +34,7 @@ void OledDisplay::drawIntroScreen() {
 // ----------------------------------------------------------
 
 void OledDisplay::drawCategoryMenu(int selected, int previous, int next,
-                                   int totalCategories) {
+                                   int totalCategories) {                            
     display.drawXBMP(0, 22, 128, 21, bitmap_item_sel_outline);
 
     display.setFont(u8g_font_7x14);
@@ -149,3 +151,14 @@ void OledDisplay::drawTransmitting(const char *signalName, float frequency) {
     display.drawStr(30, 58, freq_str);
 }
 
+
+void OledDisplay::drawMenuIntro(Animation &anim) {
+    // Get the current frame from the animation object (passed by reference)
+    const unsigned char* currentFrame = anim.getCurrentFrame();
+    display.drawXBMP(0, // fullscreen animation 
+        0,              // fullscreen animation 
+        128,            // fullscreen animation 
+        64,             // fullscreen animation 
+        currentFrame); // Bitmap
+    anim.updateAnimation();// update animation frame
+}

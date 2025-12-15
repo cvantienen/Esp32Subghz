@@ -18,7 +18,7 @@
 // CONSTANTS
 // =============================================================================
 #define BUTTON_SCAN_DELAY_MS 5
-#define DISPLAY_REFRESH_MS 33 // 30 FPS (1000ms / 30 = 33.3ms)
+#define DISPLAY_REFRESH_MS 50 // 30 FPS (1000ms / 30 = 33.3ms)
 #define RADIO_CHECK_DELAY_MS 100
 #define QUEUE_SIZE 20
 
@@ -27,7 +27,6 @@
 // =============================================================================
 struct MenuState {
     MenuScreen screen;
-    Animation animation;
     int8_t selectedCategory;
     int8_t selectedSignal;
     int8_t categoryPrev;
@@ -48,10 +47,7 @@ struct TransmitRequest {
 // =============================================================================
 // ANIMATION STATE STRUCTURE
 // =============================================================================
-struct AnimationState {
-    uint32_t timestamp;
-    uint8_t progress;
-};
+
 
 // =============================================================================
 // GLOBAL OBJECTS
@@ -110,7 +106,6 @@ void ButtonTask(void *parameter) {
 // =============================================================================
 void DisplayTask(void *parameter) {
     vTaskDelay(300 / portTICK_PERIOD_MS); // Wait for initialization
-
     MenuState currentState;
     bool hasState = false;
 
@@ -119,7 +114,6 @@ void DisplayTask(void *parameter) {
         if (xQueueReceive(menuStateQueue, &currentState, 0) == pdTRUE) {
             hasState = true;
         }
-
         // Only draw if we have valid state
         if (hasState) {
             display.clear();
@@ -156,7 +150,11 @@ void DisplayTask(void *parameter) {
                 display.drawTransmitting(signal->name, signal->frequency);
                 break;
             }
-
+            
+            case MenuScreen::INTRO: {
+                display.drawMenuIntro(startMenuAnimation);
+                break;
+            }
             default:
                 break;
             }
@@ -251,7 +249,10 @@ void loop() {
                     menu.setCurrentScreen(MenuScreen::DETAILS);
                 }
                 break;
-
+            case MenuScreen::INTRO:
+                if (buttonEvent == 3) {
+                    menu.setCurrentScreen(MenuScreen::CATEGORIES);
+                }
             default:
                 break;
             }
@@ -322,7 +323,7 @@ void setup() {
     delay(1500);
     Serial.println("[setup] Display initialized");
 
-    menu.setCurrentScreen(MenuScreen::CATEGORIES);
+    menu.setCurrentScreen(MenuScreen::INTRO);
     menu.setCategoryCount(NUM_OF_CATEGORIES);
 
     FilesystemHelper::begin(true);
