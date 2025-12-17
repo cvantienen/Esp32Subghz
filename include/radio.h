@@ -10,7 +10,7 @@ class SubghzRadio {
     static constexpr int PIN_MISO = 19;
     static constexpr int PIN_MOSI = 23;
     static constexpr int PIN_SS = 5;
-    static constexpr int PIN_GDO0 = 2;
+    static constexpr int PIN_GDO0 = 12;
     static constexpr int PIN_GDO2 = 4;
 
     // Radio settings
