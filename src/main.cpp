@@ -8,7 +8,6 @@
 #include "button.h"
 #include "display.h"
 #include "configs.h"
-#include "filesystem.h"
 #include "icon.h"
 #include "menu.h"
 #include "radio.h"
@@ -318,7 +317,6 @@ void setup() {
     menu.setCurrentScreen(MenuScreen::INTRO);
     menu.setCategoryCount(NUM_OF_CATEGORIES);
 
-    FilesystemHelper::begin(true);
 
     // Create queues (NO MUTEX NEEDED!)
     buttonQueue = xQueueCreate(QUEUE_SIZE, sizeof(uint8_t));
