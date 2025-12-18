@@ -7,6 +7,7 @@
 
 #include "button.h"
 #include "display.h"
+#include "configs.h"
 #include "filesystem.h"
 #include "icon.h"
 #include "menu.h"
@@ -14,39 +15,7 @@
 #include "animation.h"
 #include "signals.h"
 
-// =============================================================================
-// CONSTANTS
-// =============================================================================
-#define BUTTON_SCAN_DELAY_MS 5
-#define DISPLAY_REFRESH_MS 50 // 30 FPS (1000ms / 30 = 33.3ms)
-#define RADIO_CHECK_DELAY_MS 100
-#define QUEUE_SIZE 20
 
-// =============================================================================
-// MENU STATE STRUCTURE (sent via queue - no mutex needed!)
-// =============================================================================
-struct MenuState {
-    MenuScreen screen;
-    int8_t selectedCategory;
-    int8_t selectedSignal;
-    int8_t categoryPrev;
-    int8_t categoryNext;
-    int8_t signalPrev;
-    int8_t signalNext;
-    int8_t signalCount;
-};
-
-// =============================================================================
-// TRANSMIT REQUEST STRUCTURE (includes menu state)
-// =============================================================================
-struct TransmitRequest {
-    int8_t category;
-    int8_t signalIndex;
-};
-
-// =============================================================================
-// ANIMATION STATE STRUCTURE
-// =============================================================================
 
 
 // =============================================================================
@@ -113,6 +82,7 @@ void DisplayTask(void *parameter) {
         // Get latest menu state (non-blocking - use latest available)
         if (xQueueReceive(menuStateQueue, &currentState, 0) == pdTRUE) {
             hasState = true;
+            Serial.println("Menu Que Recieved");
         }
         // Only draw if we have valid state
         if (hasState) {
@@ -143,7 +113,7 @@ void DisplayTask(void *parameter) {
                 break;
             }
 
-            case MenuScreen::TRANSMIT: {
+            case MenuScreen::TRANSMIT: { // transmit Screen
                 SubGHzSignal *signal =
                     &SIGNAL_CATEGORIES[currentState.selectedCategory]
                          .signals[currentState.selectedSignal];
@@ -151,13 +121,17 @@ void DisplayTask(void *parameter) {
                 break;
             }
             
-            case MenuScreen::INTRO: {
-                display.drawMenuIntro();
+            case MenuScreen::STARTMENU: { // start menu animation
+                display.drawAnimation(startMenuAnimation);
                 break;
             }
-            case MenuScreen::STARTMENU{
-                display.drawStartMenu(startMenuAnimation)
-            }
+            case MenuScreen::INTRO: {// intro animation
+                display.drawAnimation(gamecubeAnimation);
+                if (gamecubeAnimation.isComplete()){
+                    uint8_t buttonEvent = 3;                 
+                    xQueueSend(buttonQueue, &buttonEvent, 0);
+                };
+            };
             default:
                 break;
             }
@@ -173,8 +147,9 @@ void DisplayTask(void *parameter) {
 // TASK 3: RADIO HANDLER (receives transmit requests from queue)
 // =============================================================================
 void RadioTask(void *parameter) {
+    
     for (;;) {
-        TransmitRequest request;
+        TransmitRequest request; // may be pointless, check for removal
 
         // Wait for transmit request (blocking)
         if (xQueueReceive(transmitRequestQueue, &request, portMAX_DELAY) ==
@@ -186,7 +161,7 @@ void RadioTask(void *parameter) {
             Serial.println("[RadioTask] Transmission started");
             radio.transmit(signal->samples, signal->length, signal->frequency);
             Serial.println("[RadioTask] Transmission complete");
-
+            vTaskDelay(500);
             // Notify UI that transmission is complete
             uint8_t complete = 1;
             xQueueSend(transmitCompleteQueue, &complete, 0);
@@ -199,7 +174,7 @@ void RadioTask(void *parameter) {
 // =============================================================================
 void loop() {
     uint8_t buttonEvent;
-    bool menuChanged = true; // Send initial state
+    bool menuChanged = true;
 
     for (;;) {
         // Process all button events in queue
@@ -243,6 +218,7 @@ void loop() {
                     TransmitRequest request;
                     request.category = menu.getSelectedCategory();
                     request.signalIndex = menu.getSelectedSignal();
+                    Serial.println("Sebnding Tansmittt");
                     xQueueSend(transmitRequestQueue, &request, 0);
                 }
                 break;
@@ -252,12 +228,21 @@ void loop() {
                     menu.setCurrentScreen(MenuScreen::DETAILS);
                 }
                 break;
-            case MenuScreen::INTRO:
+            case MenuScreen::STARTMENU:
                 if (buttonEvent == 3) {
                     menu.setCurrentScreen(MenuScreen::CATEGORIES);
                 }
                 break;
-            case MenuScreen:STARTMENU
+            case MenuScreen::INTRO:
+                // // Check for Animation progress
+                // // if (gamecubeAnimation.isComplete()) {
+                // //     Serial.println("Intro animation Complete");
+                // //     menu.setCurrentScreen(MenuScreen::STARTMENU);
+                // // }
+                if (buttonEvent == 3) {
+                    menu.setCurrentScreen(MenuScreen::STARTMENU);
+                } // Skip
+            break;
             default:
                 break;
             }
@@ -266,6 +251,7 @@ void loop() {
         // Check for transmission complete
         uint8_t transmitComplete;
         if (xQueueReceive(transmitCompleteQueue, &transmitComplete, 0)) {
+            Serial.println("Transmitt Que Recieved");
             menu.setCurrentScreen(MenuScreen::DETAILS);
             menuChanged = true;
         }
@@ -285,6 +271,7 @@ void loop() {
             // Send to DisplayTask (overwrite if queue full - always latest
             // state)
             xQueueOverwrite(menuStateQueue, &state);
+            Serial.println("Menu State sent");
             menuChanged = false;
         }
 

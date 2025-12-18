@@ -1,7 +1,6 @@
 #include "animation.h"
-#include "segway_bitmaps.h"
 #include "startmenu_bitmaps.h"
-#include "drake_bitmaps.h"
+#include "gamecube_bitmaps.h"
 
 
 // =============================================================================
@@ -20,6 +19,8 @@ void Animation::updateAnimation() {
     currentFrame++;
     if (currentFrame >= frameCount) {
         currentFrame = 0;  // Loop back to start
+        framesCycled = true;
+        Serial.println("Frames Cycled");
         if (!active) {
             stopAnimation();// Stop if not looping
         }
@@ -30,8 +31,12 @@ void Animation::updateAnimation() {
 // =============================================================================
 // CHECK IF ANIMATION IS PLAYING
 // =============================================================================
-bool Animation::isAnimationPlaying() {
+bool Animation::isPlaying() {
     return active;
+}
+
+bool Animation::isComplete() {
+    return framesCycled;
 }
 
 // =============================================================================
@@ -41,6 +46,5 @@ const unsigned char* Animation::getCurrentFrame() {
     return frames[currentFrame];
 }
 
-Animation segwayAnimation(segwayArray ,segwayFramesCount);
 Animation startMenuAnimation(startMenuArray ,startMenuFramesCount);
-Animation drakeAnimation(drakeArray ,drakeFramesCount);
+Animation gamecubeAnimation(gamecubeArray,gamecubeFramesCount);

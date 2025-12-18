@@ -4,7 +4,7 @@
         "--line-length",
         "78"
     ],
-    "editor.fontSize": 12,
+    "editor.fontSize": 10,
     "editor.tabSize": 4,
     "files.autoSave": "afterDelay",
     "github.copilot.nextEditSuggestions.enabled": true,
@@ -12,5 +12,5 @@
     "editor.overtypeCursorStyle": "line-thin",
     "editor.cursorBlinking": "smooth",
     "editor.cursorSmoothCaretAnimation": "on",
-    
+    "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json",
 }

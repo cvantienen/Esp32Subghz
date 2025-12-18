@@ -9,30 +9,34 @@
 class Animation {
 public:
     // Constructor to initialize the animation with a fixed array of frames
-    Animation(const unsigned char* frames[], uint8_t frameCount) 
+    Animation(const unsigned char* frames[], uint8_t frameCount, bool loop=true) 
         : frames(frames), frameCount(frameCount), currentFrame(0) {}
 
     void stopAnimation();
     // Update animation (call this every frame in your display task)
     void updateAnimation();
     // Check if animation is playing
-    bool isAnimationPlaying();
+    bool isPlaying();
+    // returns true if all frames have been played
+    bool isComplete();
     // Get current frame bitmap (returns nullptr if not active)
     const unsigned char* getCurrentFrame();
-
+    // 
+    void getFrameCount();
 
 private:
 
     const unsigned char** frames;  // Array of frame pointers
     uint8_t frameCount;              // Number of frames in the array
     uint8_t currentFrame;           // Current frame index
-    bool active = false; 
+
+
+    bool active = false;            // Used For non button animations
+    bool framesCycled = false;      // All Frames Played?
 };
-// Declare extern object
-extern Animation segwayAnimation;
 // Declare extern object
 extern Animation startMenuAnimation;
 
-extern Animation drakeAnimation;
+extern Animation gamecubeAnimation;
 
 #endif

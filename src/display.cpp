@@ -19,7 +19,7 @@ void OledDisplay::init() {
 
 void OledDisplay::clear() { display.clearBuffer(); }
 
-void OledDisplay::show() { display.sendBuffer(); }
+void OledDisplay::show() { display.sendBuffer(); } 
 
 // ----------------------------------------------------------
 // Draw intro screen
@@ -152,7 +152,7 @@ void OledDisplay::drawTransmitting(const char *signalName, float frequency) {
 }
 
 
-void OledDisplay::drawMenuIntro(Animation &anim) {
+void OledDisplay::drawAnimation(Animation &anim) {
     // Get the current frame from the animation object (passed by reference)
     const unsigned char* currentFrame = anim.getCurrentFrame();
     display.drawXBMP(0, // fullscreen animation 
@@ -162,3 +162,5 @@ void OledDisplay::drawMenuIntro(Animation &anim) {
         currentFrame); // Bitmap
     anim.updateAnimation();// update animation frame
 }
+
+

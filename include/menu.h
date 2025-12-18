@@ -22,8 +22,23 @@ enum class MenuScreen : uint8_t {
     SIGNALS,    // Signals within selected category
     DETAILS,    // Info about selected signal
     TRANSMIT,   // Sending signal
-    INTRO,   // OTA update
+    INTRO,   // INtro Animation
     STARTMENU, // Start Menu Sreen
+};
+
+
+// =============================================================================
+// MENU STATE STRUCTURE- Holds Current Screen state
+// =============================================================================
+struct MenuState {
+    MenuScreen screen;
+    int8_t selectedCategory;
+    int8_t selectedSignal;
+    int8_t categoryPrev;
+    int8_t categoryNext;
+    int8_t signalPrev;
+    int8_t signalNext;
+    int8_t signalCount;
 };
 
 class Menu {

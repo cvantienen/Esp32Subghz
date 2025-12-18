@@ -20,8 +20,9 @@ class OledDisplay {
     void show();
 
     void drawIntroScreen();
-    void drawMenuIntro(Animation &anim); 
-
+    
+    void drawAnimation(Animation &anim); 
+  
     void drawCategoryMenu(int selected, int previous, int next,
                           int totalCategories);
 

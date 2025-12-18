@@ -1,6 +1,16 @@
 #ifndef RADIO_H
 #define RADIO_H
 
+#include <Arduino.h>
+
+// =============================================================================
+// TRANSMIT REQUEST STRUCTURE (includes menu state)
+// =============================================================================
+struct TransmitRequest {
+    int8_t category;
+    int8_t signalIndex;
+};
+
 // RADIO OBJECT
 class SubghzRadio {
 
