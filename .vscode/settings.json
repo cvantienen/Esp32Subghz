@@ -13,4 +13,5 @@
     "editor.cursorBlinking": "smooth",
     "editor.cursorSmoothCaretAnimation": "on",
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json",
+    "C_Cpp.errorSquiggles": "disabled",
 }

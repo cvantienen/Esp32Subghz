@@ -1,10 +1,52 @@
+import re
+from pathlib import Path
+from dataclasses import dataclass
+from typing import Optional
+import logging
+from collections import defaultdict
 
+# logging configuration
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
+# set current directory to Base directory
+BASE_DIR = Path.cwd().parent
+print("--------------------------------")
+print(BASE_DIR)
+print("--------------------------------")
 # ============================================================================
-# FLIPPER FILE PARSER
+# CONFIGURATION
 # ============================================================================
+
+FLIPPER_SIGNALS_DIR = BASE_DIR / "data/subghz"
+OUTPUT_HEADER = BASE_DIR / "generated_signals.h"
+OUTPUT_SOURCE = BASE_DIR / "generated_signals.cpp"
+
+testfile = FLIPPER_SIGNALS_DIR / "TouchTunesPin/0.sub"
+if not testfile.exists():
+    print(f"File {testfile} does not exist")
+    exit(1)
+# ============================================================================
+# DATA STRUCTURES
+# ============================================================================
+
+
+@dataclass
+class FlipperSignal:
+    """Represents a parsed Flipper .sub file"""
+
+    name: str
+    filename: str
+    category: str
+    frequency: float  # MHz
+    raw_data: list[int]
+    description: str = ""
+    protocol: str = "RAW"
+    preset: str = ""
+
 
 def parse_flipper_sub_file(
-    filepath: Path, category: str = MISC_CATEGORY
+    filepath: Path, category: str = "MISC"
 ) -> Optional[FlipperSignal]:
     """
     Parse a Flipper Zero .sub file and extract signal data.
@@ -31,7 +73,7 @@ def parse_flipper_sub_file(
     protocol_match = re.search(r"Protocol:\s*(\w+)", content)
     preset_match = re.search(r"Preset:\s*(\S+)", content)
 
-    # RAW_Data can span multiple lines
+    # RAW_Data can span multiple generated_source_code
     raw_data_matches = re.findall(r"RAW_Data:\s*([-\d\s]+)", content)
 
     if not frequency_match:
@@ -46,7 +88,7 @@ def parse_flipper_sub_file(
     frequency_hz = int(frequency_match.group(1))
     frequency_mhz = frequency_hz / 1_000_000.0
 
-    # Parse all RAW_Data lines and combine
+    # Parse all RAW_Data generated_source_code and combine
     raw_data = []
     for raw_line in raw_data_matches:
         values = raw_line.strip().split()
@@ -66,9 +108,8 @@ def parse_flipper_sub_file(
     # Try to extract description from file comments or use filename
     desc_match = re.search(r"#\s*Description:\s*(.+)", content, re.IGNORECASE)
     description = (
-        desc_match.group(1).strip()
-        if desc_match
-        else f"Signal from {filepath.name}"
+        desc_match.group(1).strip(
+        ) if desc_match else f"Signal from {filepath.name}"
     )
 
     return FlipperSignal(
@@ -82,59 +123,54 @@ def parse_flipper_sub_file(
         preset=preset_match.group(1) if preset_match else "",
     )
 
+    # ============================================================================
 
-# ============================================================================
+
 # DIRECTORY SCANNER
 # ============================================================================
 
-def scan_flipper_directory(input_dir: Path) -> list[SignalCategory]:
-    """
-    Scan a directory for .sub files organized into category folders.
 
-    Returns a list of SignalCategory objects.
-    """
-    categories: dict[str, list[FlipperSignal]] = {}
+def scan_flipper_directory(flipper_signals_dir: Path) -> dict[str, list[FlipperSignal]]:
+    categories: dict[str, list[FlipperSignal]] = defaultdict(list)
 
-    # First pass: scan subdirectories (categories)
-    for item in input_dir.iterdir():
-        if item.is_dir() and not item.name.startswith("."):
-            category_name = item.name.replace("_", " ").replace("-", " ")
-            logger.info("Category: %s", category_name)
+    for category_dir in flipper_signals_dir.iterdir():
+        if not category_dir.is_dir() or category_dir.name.startswith("."):
+            continue
 
-            if category_name not in categories:
-                categories[category_name] = []
+        logger.info("Scanning category: %s", category_dir.name)
 
-            for sub_file in item.glob("*.sub"):
-                logger.debug("  → Parsing: %s", sub_file.name)
-                signal = parse_flipper_sub_file(sub_file, category_name)
-                if signal:
-                    categories[category_name].append(signal)
-
-    # Second pass: scan root-level .sub files (go to Misc category)
-    root_subs = list(input_dir.glob("*.sub"))
-    if root_subs:
-        logger.info("Category: %s (root-level files)", MISC_CATEGORY)
-        if MISC_CATEGORY not in categories:
-            categories[MISC_CATEGORY] = []
-
-        for sub_file in root_subs:
-            logger.debug("  → Parsing: %s", sub_file.name)
-            signal = parse_flipper_sub_file(sub_file, MISC_CATEGORY)
+        for sub_file in category_dir.glob("*.sub"):
+            signal = parse_flipper_sub_file(sub_file, category_dir.name)
             if signal:
-                categories[MISC_CATEGORY].append(signal)
+                categories[category_dir.name].append(signal)
 
-    # Convert to list of SignalCategory objects
-    result = []
-    for cat_name, signals in sorted(categories.items()):
-        if signals:  # Only include categories with signals
-            result.append(SignalCategory(name=cat_name, signals=signals))
-
-    return result
+    return categories
 
 
 # ============================================================================
 # C++ CODE GENERATOR
 # ============================================================================
+def cat_macro(name: str) -> str:
+    return sanitize_identifier(name).upper()
+
+
+def sample_name(cat: str, sig: str) -> str:
+    return f"samples_{sanitize_identifier(cat)}_{sanitize_identifier(sig)}"
+
+
+def length_name(cat: str, sig: str) -> str:
+    return (
+        f"LENGTH_SAMPLES_{sanitize_identifier(cat)}_{sanitize_identifier(sig)}".upper(
+        )
+    )
+
+
+def signal_array_name(cat: str) -> str:
+    return f"{cat_macro(cat)}_SIGNALS"
+
+
+def num_name(cat: str) -> str:
+    return f"NUM_{cat_macro(cat)}"
 
 
 def sanitize_identifier(name: str) -> str:
@@ -151,237 +187,156 @@ def sanitize_identifier(name: str) -> str:
     return identifier.lower()
 
 
-def generate_header(categories: list[SignalCategory]) -> str:
-    """Generate the C++ header file content"""
-    lines = [
-        "// ============================================================================",
-        "// AUTO-GENERATED FILE - DO NOT EDIT MANUALLY",
-        "// Generated by flipper_to_cpp.py from Flipper Zero .sub files",
-        "",
-        "#ifndef GENERATED_SIGNALS_H",
-        "#define GENERATED_SIGNALS_H",
-        "",
-        "#include <Arduino.h>",
-        "#include <pgmspace.h>",
-        '#include "signals.h"  // For SubGHzSignal and SubghzSignalList structs',
-        "",
-        "// ==================== ARRAY LENGTH CONSTANTS ====================",
-        "",
-    ]
+def generate_code(categories: dict[str, list[FlipperSignal]]):
+    header = []
+    source = []
 
-    # Generate length constants for each signal
-    for category in categories:
-        for signal in category.signals:
-            const_name = (
-                f"LENGTH_GEN_{sanitize_identifier(category.name)}_"
-                f"{sanitize_identifier(signal.filename)}"
-            ).upper()
-            lines.append(
-                f"constexpr uint16_t {const_name} = {len(signal.raw_data)};"
+    # ================= HEADER =================
+
+    header.extend(
+        [
+            "#ifndef GENERATED_SIGNALS_H",
+            "#define GENERATED_SIGNALS_H",
+            "",
+            "#include <Arduino.h>",
+            "#include <pgmspace.h>",
+            "",
+            "// ==================== ARRAY LENGTH CONSTANTS ====================",
+            "",
+        ]
+    )
+
+    for cat, signals in categories.items():
+        for s in signals:
+            header.append(
+                f"constexpr uint16_t {length_name(cat, s.name)} = {len(s.raw_data)};"
             )
 
-    lines.extend(
+    header.extend(
         [
             "",
             "// ==================== EXTERN DECLARATIONS ====================",
             "",
-            "// Sample arrays (stored in PROGMEM/flash)",
         ]
     )
 
-    # Declare sample arrays
-    for category in categories:
-        for signal in category.signals:
-            var_name = (
-                f"gen_samples_{sanitize_identifier(category.name)}_"
-                f"{sanitize_identifier(signal.filename)}"
-            )
-            lines.append(f"extern const int16_t {var_name}[] PROGMEM;")
+    # Sample arrays
+    for cat, signals in categories.items():
+        for s in signals:
+            header.append(
+                f"extern const int16_t {sample_name(cat, s.name)}[] PROGMEM;")
 
-    lines.extend(["", "// Signal arrays"])
+    header.append("")
 
-    # Declare signal arrays per category
-    for category in categories:
-        array_name = f"GEN_{sanitize_identifier(category.name).upper()}_SIGNALS"
-        lines.append(f"extern SubGHzSignal {array_name}[];")
+    # Signal arrays + counts
+    for cat in categories:
+        header.append(f"extern SubGHzSignal {signal_array_name(cat)}[];")
+        header.append(f"extern const uint8_t {num_name(cat)};")
 
-    lines.extend(["", "// Counts"])
-
-    for category in categories:
-        count_name = f"NUM_GEN_{sanitize_identifier(category.name).upper()}"
-        lines.append(f"extern const uint8_t {count_name};")
-
-    lines.extend(
+    header.extend(
         [
             "",
-            "// Generated Categories List",
-            "extern SubghzSignalList GEN_SIGNAL_CATEGORIES[];",
-            "extern const uint8_t NUM_GEN_CATEGORIES;",
+            "extern SubghzSignalList SIGNAL_CATEGORIES[];",
+            "extern const uint8_t NUM_OF_CATEGORIES;",
             "",
-            "#endif  // GENERATED_SIGNALS_H",
-            "",
+            "#endif",
         ]
     )
 
-    return "\n".join(lines)
+    # ================= SOURCE =================
 
-
-def generate_source(categories: list[SignalCategory]) -> str:
-    """Generate the C++ source file content"""
-    lines = [
-        "// ============================================================================",
-        "// AUTO-GENERATED FILE - DO NOT EDIT MANUALLY",
-        "// Generated by flipper_to_cpp.py from Flipper Zero .sub files",
-        "",
-        '#include "generated_signals.h"',
-        "",
-        "// ==================== SAMPLE DATA ARRAYS (STORED IN FLASH) ====================",
-        "// PROGMEM stores these in flash memory instead of RAM",
-        "// ESP32 reads PROGMEM automatically - no special read functions needed",
-        "",
-    ]
-
-    # Generate sample arrays
-    for category in categories:
-        lines.append(f"// --- {category.name} ---")
-        for signal in category.signals:
-            var_name = (
-                f"gen_samples_{sanitize_identifier(category.name)}_"
-                f"{sanitize_identifier(signal.filename)}"
-            )
-
-            # Format raw data nicely (max ~8 values per line)
-            data_lines = []
-            for i in range(0, len(signal.raw_data), 8):
-                chunk = signal.raw_data[i : i + 8]
-                data_lines.append("    " + ", ".join(str(v) for v in chunk))
-
-            lines.append(f"const int16_t {var_name}[] PROGMEM = {{")
-            lines.append(",\n".join(data_lines))
-            lines.append("};")
-            lines.append("")
-
-    lines.extend(
+    source.extend(
         [
-            "// ==================== SIGNAL MENU STRUCTURES ====================",
+            '#include "signals.h"',
+            '#include "generated_signals.h"',
+            "",
+            "// ==================== SAMPLE DATA ARRAYS ====================",
             "",
         ]
     )
 
-    # Generate signal arrays per category
-    for category in categories:
-        array_name = f"GEN_{sanitize_identifier(category.name).upper()}_SIGNALS"
-        lines.append(f"SubGHzSignal {array_name}[] = {{")
+    for cat, signals in categories.items():
+        for s in signals:
+            values = []
+            for i in range(0, len(s.raw_data), 8):
+                values.append(
+                    "    " + ", ".join(map(str, s.raw_data[i: i + 8])))
 
-        for i, signal in enumerate(category.signals):
-            var_name = (
-                f"gen_samples_{sanitize_identifier(category.name)}_"
-                f"{sanitize_identifier(signal.filename)}"
+            source.append(
+                f"const int16_t {sample_name(cat, s.name)}[] PROGMEM = {{")
+            source.append(",\n".join(values))
+            source.append("};\n")
+
+    # Signal arrays
+    for cat, signals in categories.items():
+        source.append(f"SubGHzSignal {signal_array_name(cat)}[] = {{")
+
+        for i, s in enumerate(signals):
+            comma = "," if i < len(signals) - 1 else ""
+            source.append(
+                f'    {{"{s.name}", "{s.description}", '
+                f"{sample_name(cat, s.name)}, "
+                f"{length_name(cat, s.name)}, {s.frequency:.2f}}}{comma}"
             )
-            const_name = (
-                f"LENGTH_GEN_{sanitize_identifier(category.name)}_"
-                f"{sanitize_identifier(signal.filename)}"Path
 
-            # Escape quotes in name/description
-            safe_name = signal.name.replace('"', '\\"')
-            safe_desc = signal.description.replace('"', '\\"')
-
-            comma = "," if i < len(category.signals) - 1 else ""
-            lines.append(
-                f'    {{"{safe_name}", "{safe_desc}", {var_name}, '
-                f'{const_name}, {signal.frequency:.2f}f}}{comma}'
-            )
-
-        lines.append("};")
-        count_name = f"NUM_GEN_{sanitize_identifier(category.name).upper()}"
-        lines.append(
-            f"const uint8_t {count_name} = "
-            f"sizeof({array_name}) / sizeof(SubGHzSignal);"
+        source.append("};")
+        source.append(
+            f"const uint8_t {num_name(cat)} = sizeof({signal_array_name(cat)}) / sizeof(SubGHzSignal);\n"
         )
-        lines.append("")
 
-    lines.extend(
-        [
-            "// ==================== GENERATED CATEGORIES ====================",
-            "",
-            "SubghzSignalList GEN_SIGNAL_CATEGORIES[] = {",
-        ]
-    )
+    # Categories
+    source.append("SubghzSignalList SIGNAL_CATEGORIES[] = {")
 
-    # Generate categories list
-    for i, category in enumerate(categories):
-        array_name = f"GEN_{sanitize_identifier(category.name).upper()}_SIGNALS"
-        count_name = f"NUM_GEN_{sanitize_identifier(category.name).upper()}"
-        safe_name = category.name.replace('"', '\\"')
+    for i, cat in enumerate(categories):
         comma = "," if i < len(categories) - 1 else ""
-        lines.append(
-            f'    {{"{safe_name}", {array_name}, {count_name}}}{comma}'
+        source.append(
+            f'    {{"{cat}", {signal_array_name(cat)}, {num_name(cat)}}}{comma}'
         )
 
-    lines.extend(
+    source.extend(
         [
             "};",
             "",
-            "const uint8_t NUM_GEN_CATEGORIES = "
-            "sizeof(GEN_SIGNAL_CATEGORIES) / sizeof(SubghzSignalList);",
-            "",
+            "const uint8_t NUM_OF_CATEGORIES = sizeof(SIGNAL_CATEGORIES) / sizeof(SubghzSignalList);",
         ]
     )
 
-    return "\n".join(lines)
-
-# ============================================================================
-# MAIN ENTRY POINT
-# ============================================================================
+    return "\n".join(source), "\n".join(header)
 
 
-def main() -> int:
-    """Main entry point for the script."""
-    # Determine project root (parent of scripts/)
-    script_dir = Path(__file__).parent.resolve()
-    project_root = script_dir.parent
-
-    # Determine input directory
-    if len(sys.argv) > 1:
-        input_dir = Path(sys.argv[1])
-        if not input_dir.is_absolute():
-            input_dir = project_root / input_dir
-    else:
-        input_dir = project_root / DEFAULT_INPUT_DIR
-
+def main():
     # Scan for .sub files
-    categories = scan_flipper_directory(input_dir)
+    categories = scan_flipper_directory(FLIPPER_SIGNALS_DIR)
 
     if not categories:
         logger.warning("No categories found. Nothing to generate.")
         return 1
 
     # Generate C++ code
-    header_content = generate_header(categories)
-    source_content = generate_source(categories)
+    generated_source_output, generated_header_output = generate_code(
+        categories)
 
     # Write output files
-    header_path = project_root / OUTPUT_HEADER
-    source_path = project_root / OUTPUT_SOURCE
-
-    # Ensure output directories exist
-    header_path.parent.mkdir(parents=True, exist_ok=True)
-    source_path.parent.mkdir(parents=True, exist_ok=True)
+    header_path = BASE_DIR / OUTPUT_HEADER
+    source_path = BASE_DIR / OUTPUT_SOURCE
 
     try:
-        header_path.write_text(header_content, encoding="utf-8")Path
-        return 1
+        header_path.write_text(generated_header_output, encoding="utf-8")
+        logger.info("Generated: %s", header_path)
+    except Exception as e:
+        logger.error("Failed to write header file %s: %s", header_path, e)
+        return
 
     try:
-        source_path.write_text(source_content, encoding="utf-8")
+        source_path.write_text(generated_source_output, encoding="utf-8")
         logger.info("Generated: %s", source_path)
-    except OSError as e:
+    except Exception as e:
         logger.error("Failed to write source file %s: %s", source_path, e)
-        return 1
+        return
 
     logger.info("C++ code generation complete.")
-    return 0
+    return
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

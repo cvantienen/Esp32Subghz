@@ -4,21 +4,6 @@
 #include <Arduino.h>
 #include <pgmspace.h>
 
-// ==================== STRUCT DEFINITIONS ====================
-
-struct SubGHzSignal {
-    const char *name;       // String stored in flash
-    const char *desc;       // Description stored in flash
-    const int16_t *samples; // Pointer to PROGMEM array
-    uint16_t length;
-    float frequency;
-};
-
-struct SubghzSignalList {
-    const char *name;
-    SubGHzSignal *signals;
-    uint8_t count;
-};
 
 // ==================== ARRAY LENGTH CONSTANTS ====================
 

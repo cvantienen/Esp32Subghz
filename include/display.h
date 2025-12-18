@@ -2,7 +2,7 @@
 #define DISPLAY_H
 
 #include "icon.h"
-#include "signals.h"
+#include "generated_signals.h"
 #include <U8g2lib.h>
 #include <Wire.h>
 #include "animation.h"
