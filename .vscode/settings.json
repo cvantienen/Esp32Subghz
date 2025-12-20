@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "/home/cody/Code/Esp32SubGhz",
+    "cmake.sourceDirectory": "/home/cj/Esp32Subghz",
     "black-formatter.args": [
         "--line-length",
         "78"

@@ -2,7 +2,7 @@
 #define GENERATED_SIGNALS_H
 
 #include <pgmspace.h>
-
+#include <Arduino.h>
 // ==================== STRUCT DEFINITIONS ====================
 
 struct SubGHzSignal {
@@ -23,102 +23,25 @@ struct SubghzSignalList {
 
 constexpr uint16_t LENGTH_SAMPLES_TESLA_TESLA_CHARGE_PORT_OPENER_V1 = 1180;
 constexpr uint16_t LENGTH_SAMPLES_TESLA_TESLA_CHARGE_PORT_OPENER_SUB_V2 = 1180;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENS_SINCARE = 959;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENS_SHAVE = 1168;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENS_VITAMIN = 955;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENS_FAMPLAN = 12771;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENSDENTAL = 14244;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENSPAIN_SLEEP = 5691;
-constexpr uint16_t LENGTH_SAMPLES_WALGREENS_WALGREENS_COUGH = 931;
+
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_F1_RESTART = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_9 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_F3_MIC_A_MUTE = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_B_RIGHT_ARROW = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_1 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_F2_KEY = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_2 = 17340;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_VOL_ZONE_2UP = 17340;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MIC_VOL_MINUS_DOWN_ARROW = 17340;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_VOL_ZONE_3DOWN = 17340;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_PAUSE = 16830;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_F4_MIC_B_MUTE = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_6 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_A_LEFT_ARROW = 17340;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_VOL_ZONE_3UP = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_5 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_OK = 17340;
+
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_VOL_ZONE_2DOWN = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_3 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_0 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_P1 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MIC_VOL_PLUS_UP_ARROW = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_LOCK_QUEUE = 17340;
+
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_VOL_ZONE_1UP = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_7 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_8 = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_P2_EDIT_QUEUE = 17340;
+
+
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_P3_SKIP = 17340;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_ON_OFF = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_SIG_4 = 17340;
+
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_VOL_ZONE_1DOWN = 17340;
-constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESBRUTE_MUSIC_KARAOKE_STAR = 17340;
-constexpr uint16_t LENGTH_SAMPLES_CVS_SMALL_APPLIANCES = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_ELECTRONICS = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_TWO = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_STOMACH_REMEDIES = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_THIRTEEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_SIX = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_EIGHT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_TELECOMMUNICATIONS_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_LIQUOR_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_ELEVEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_BATTERIES = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_VITAMIN_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_HEALTH_DEPARTMENT_OTC_HEALTH = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_DIET_AND_NUTRITION_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_SECURITY_TO_THE_FRONT_OF_THE_STORE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_COSMETICS_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_DEODORANTS = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_EYE_CARE_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_BABY_FORMULA = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_NINETEEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_ONE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_MANAGER_TO_THE_FRONT_OF_THE_STORE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_ELECTRIC_RAZORS = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_PAIN_RELIEVER_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_THE_FRAGRANCE_CASE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_EIGHTEEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_CUSTOMER_SERVICE_SCAN_ALL_AISLES = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_THREE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_FIRST_AID_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_STATIONERY = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_SIXTEEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_THE_PHOTO_LAB = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_BODY_WASH = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_SEVENTEEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_FIFTEEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_RECORDABLE_MEDIA_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_FOUR = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_SKIN_CARE_DEPARTMENT = 738;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_TWENTY = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_SPECIAL_DING = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_CLINIC_1_MEDICAL_ALERT_TO_THE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_FOURTEEN = 730;
-constexpr uint16_t LENGTH_SAMPLES_CVS_DENTAL_CARE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_PRE_RECORDED_VIDEO_DEPARTMENT = 802;
-constexpr uint16_t LENGTH_SAMPLES_CVS_FAMILY_PLANNING = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_COUGH_COLD = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_TEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_FIVE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_THE_PHARMACY = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_SEVEN = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_HAIR_CARE_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_DING_1 = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_ALLERGY_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_FILM_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_AISLE_TWELVE = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_FOOT_CARE_DEPARTMENT = 820;
-constexpr uint16_t LENGTH_SAMPLES_CVS_CASHIER_TO_THE_FRONT_OF_THE_STORE = 820;
+
+
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_F1_RESTART = 67;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_SIG_9 = 67;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_F3_MIC_A_MUTE = 67;
@@ -151,114 +74,30 @@ constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_ON_OFF = 67;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_SIG_4 = 67;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_MUSIC_VOL_ZONE_1DOWN = 67;
 constexpr uint16_t LENGTH_SAMPLES_TOUCHTUNESPIN_MUSIC_KARAOKE_STAR = 67;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_LOWES_WIRECUTTING = 1733;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_ELECTRICAL = 1657;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_BLIND_CUTTING = 969;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_OUTDOOR_POWER_EQUIPMENT_DESK = 1150;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_APPLIANCE_DESK = 1152;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_FLOORING_DESK = 2085;
-constexpr uint16_t LENGTH_SAMPLES_LOWES_PACKAGED_RUGS = 1149;
 
 // ==================== EXTERN DECLARATIONS ====================
 
 extern const int16_t samples_tesla_tesla_charge_port_opener_v1[] PROGMEM;
 extern const int16_t samples_tesla_tesla_charge_port_opener_sub_v2[] PROGMEM;
-extern const int16_t samples_walgreens_walgreens_sincare[] PROGMEM;
-extern const int16_t samples_walgreens_walgreens_shave[] PROGMEM;
-extern const int16_t samples_walgreens_walgreens_vitamin[] PROGMEM;
-extern const int16_t samples_walgreens_walgreens_famplan[] PROGMEM;
-extern const int16_t samples_walgreens_walgreensdental[] PROGMEM;
-extern const int16_t samples_walgreens_walgreenspain_sleep[] PROGMEM;
-extern const int16_t samples_walgreens_walgreens_cough[] PROGMEM;
+
 extern const int16_t samples_touchtunesbrute_f1_restart[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_9[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_f3_mic_a_mute[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_b_right_arrow[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_1[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_f2_key[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_2[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_music_vol_zone_2up[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_mic_vol_minus_down_arrow[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_music_vol_zone_3down[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_pause[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_f4_mic_b_mute[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_6[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_a_left_arrow[] PROGMEM;
+
 extern const int16_t samples_touchtunesbrute_music_vol_zone_3up[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_5[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_ok[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_music_vol_zone_2down[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_3[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_0[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_p1[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_mic_vol_plus_up_arrow[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_lock_queue[] PROGMEM;
+
 extern const int16_t samples_touchtunesbrute_music_vol_zone_1up[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_7[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_8[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_p2_edit_queue[] PROGMEM;
+
 extern const int16_t samples_touchtunesbrute_p3_skip[] PROGMEM;
 extern const int16_t samples_touchtunesbrute_on_off[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_sig_4[] PROGMEM;
+
 extern const int16_t samples_touchtunesbrute_music_vol_zone_1down[] PROGMEM;
-extern const int16_t samples_touchtunesbrute_music_karaoke_star[] PROGMEM;
-extern const int16_t samples_cvs_small_appliances[] PROGMEM;
-extern const int16_t samples_cvs_electronics[] PROGMEM;
-extern const int16_t samples_cvs_aisle_two[] PROGMEM;
-extern const int16_t samples_cvs_stomach_remedies[] PROGMEM;
-extern const int16_t samples_cvs_aisle_thirteen[] PROGMEM;
-extern const int16_t samples_cvs_aisle_six[] PROGMEM;
-extern const int16_t samples_cvs_aisle_eight[] PROGMEM;
-extern const int16_t samples_cvs_telecommunications_department[] PROGMEM;
-extern const int16_t samples_cvs_liquor_department[] PROGMEM;
-extern const int16_t samples_cvs_aisle_eleven[] PROGMEM;
-extern const int16_t samples_cvs_batteries[] PROGMEM;
-extern const int16_t samples_cvs_vitamin_department[] PROGMEM;
-extern const int16_t samples_cvs_health_department_otc_health[] PROGMEM;
-extern const int16_t samples_cvs_diet_and_nutrition_department[] PROGMEM;
-extern const int16_t samples_cvs_security_to_the_front_of_the_store[] PROGMEM;
-extern const int16_t samples_cvs_cosmetics_department[] PROGMEM;
-extern const int16_t samples_cvs_deodorants[] PROGMEM;
-extern const int16_t samples_cvs_eye_care_department[] PROGMEM;
-extern const int16_t samples_cvs_baby_formula[] PROGMEM;
-extern const int16_t samples_cvs_aisle_nineteen[] PROGMEM;
-extern const int16_t samples_cvs_aisle_one[] PROGMEM;
-extern const int16_t samples_cvs_manager_to_the_front_of_the_store[] PROGMEM;
-extern const int16_t samples_cvs_electric_razors[] PROGMEM;
-extern const int16_t samples_cvs_pain_reliever_department[] PROGMEM;
-extern const int16_t samples_cvs_the_fragrance_case[] PROGMEM;
-extern const int16_t samples_cvs_aisle_eighteen[] PROGMEM;
-extern const int16_t samples_cvs_customer_service_scan_all_aisles[] PROGMEM;
-extern const int16_t samples_cvs_aisle_three[] PROGMEM;
-extern const int16_t samples_cvs_first_aid_department[] PROGMEM;
-extern const int16_t samples_cvs_stationery[] PROGMEM;
-extern const int16_t samples_cvs_aisle_sixteen[] PROGMEM;
-extern const int16_t samples_cvs_the_photo_lab[] PROGMEM;
-extern const int16_t samples_cvs_body_wash[] PROGMEM;
-extern const int16_t samples_cvs_aisle_seventeen[] PROGMEM;
-extern const int16_t samples_cvs_aisle_fifteen[] PROGMEM;
-extern const int16_t samples_cvs_recordable_media_department[] PROGMEM;
-extern const int16_t samples_cvs_aisle_four[] PROGMEM;
-extern const int16_t samples_cvs_skin_care_department[] PROGMEM;
-extern const int16_t samples_cvs_aisle_twenty[] PROGMEM;
-extern const int16_t samples_cvs_special_ding[] PROGMEM;
-extern const int16_t samples_cvs_clinic_1_medical_alert_to_the[] PROGMEM;
-extern const int16_t samples_cvs_aisle_fourteen[] PROGMEM;
-extern const int16_t samples_cvs_dental_care[] PROGMEM;
-extern const int16_t samples_cvs_pre_recorded_video_department[] PROGMEM;
-extern const int16_t samples_cvs_family_planning[] PROGMEM;
-extern const int16_t samples_cvs_cough_cold[] PROGMEM;
-extern const int16_t samples_cvs_aisle_ten[] PROGMEM;
-extern const int16_t samples_cvs_aisle_five[] PROGMEM;
-extern const int16_t samples_cvs_the_pharmacy[] PROGMEM;
-extern const int16_t samples_cvs_aisle_seven[] PROGMEM;
-extern const int16_t samples_cvs_hair_care_department[] PROGMEM;
-extern const int16_t samples_cvs_ding_1[] PROGMEM;
-extern const int16_t samples_cvs_allergy_department[] PROGMEM;
-extern const int16_t samples_cvs_film_department[] PROGMEM;
-extern const int16_t samples_cvs_aisle_twelve[] PROGMEM;
-extern const int16_t samples_cvs_foot_care_department[] PROGMEM;
-extern const int16_t samples_cvs_cashier_to_the_front_of_the_store[] PROGMEM;
+
+
 extern const int16_t samples_touchtunespin_f1_restart[] PROGMEM;
 extern const int16_t samples_touchtunespin_sig_9[] PROGMEM;
 extern const int16_t samples_touchtunespin_f3_mic_a_mute[] PROGMEM;
@@ -291,26 +130,16 @@ extern const int16_t samples_touchtunespin_on_off[] PROGMEM;
 extern const int16_t samples_touchtunespin_sig_4[] PROGMEM;
 extern const int16_t samples_touchtunespin_music_vol_zone_1down[] PROGMEM;
 extern const int16_t samples_touchtunespin_music_karaoke_star[] PROGMEM;
-extern const int16_t samples_lowes_lowes_wirecutting[] PROGMEM;
-extern const int16_t samples_lowes_electrical[] PROGMEM;
-extern const int16_t samples_lowes_blind_cutting[] PROGMEM;
-extern const int16_t samples_lowes_outdoor_power_equipment_desk[] PROGMEM;
-extern const int16_t samples_lowes_appliance_desk[] PROGMEM;
-extern const int16_t samples_lowes_flooring_desk[] PROGMEM;
-extern const int16_t samples_lowes_packaged_rugs[] PROGMEM;
 
 extern SubGHzSignal TESLA_SIGNALS[];
 extern const uint8_t NUM_TESLA;
-extern SubGHzSignal WALGREENS_SIGNALS[];
-extern const uint8_t NUM_WALGREENS;
+
 extern SubGHzSignal TOUCHTUNESBRUTE_SIGNALS[];
 extern const uint8_t NUM_TOUCHTUNESBRUTE;
-extern SubGHzSignal CVS_SIGNALS[];
-extern const uint8_t NUM_CVS;
+
 extern SubGHzSignal TOUCHTUNESPIN_SIGNALS[];
 extern const uint8_t NUM_TOUCHTUNESPIN;
-extern SubGHzSignal LOWES_SIGNALS[];
-extern const uint8_t NUM_LOWES;
+
 
 extern SubghzSignalList SIGNAL_CATEGORIES[];
 extern const uint8_t NUM_OF_CATEGORIES;

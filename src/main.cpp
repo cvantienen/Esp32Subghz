@@ -12,7 +12,7 @@
 #include "menu.h"
 #include "radio.h"
 #include "animation.h"
-#include "signals.h"
+#include "generated_signals.h"
 
 
 
