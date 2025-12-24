@@ -220,7 +220,7 @@ void loop() {
                     request.signalIndex = menu.getSelectedSignal();
                     Serial.println("Sebnding Tansmittt");
                     xQueueSend(transmitRequestQueue, &request, 0);
-                }
+                }>
                 break;
 
             case MenuScreen::TRANSMIT:
