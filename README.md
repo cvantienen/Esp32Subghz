@@ -11,7 +11,6 @@ A Flipper Zero-inspired SubGHz signal transmitter built on ESP32 hardware with C
   - [FreeRTOS Task Structure](#freertos-task-structure)
   - [Inter-Task Communication](#inter-task-communication)
 - [Project Structure](#project-structure)
-- [Current Screens](#current-screens)
 - [Usage](#usage)
 - [Future Roadmap](#future-roadmap)
 - [Technical Details](#technical-details)
@@ -82,15 +81,6 @@ This design ensures **thread-safe operation** without blocking or race condition
 └── generated_signals.h      # Pre-coded SubGHz signal database
 ```
 
-## Current Screens
-
-1. **INTRO**: Boot-up animation (GameCube-style)
-2. **STARTMENU**: Start menu with animation
-3. **CATEGORIES**: Browse signal categories
-4. **SIGNALS**: View signals within a category
-5. **DETAILS**: Display signal parameters (frequency, protocol, etc.)
-6. **TRANSMIT**: Active transmission screen
-
 ## Usage
 
 1. **Power on the device** - Intro animation plays automatically
@@ -99,7 +89,6 @@ This design ensures **thread-safe operation** without blocking or race condition
 4. **Choose a signal** - Use Up/Down, press Select
 5. **View signal details** - Automatic on selection
 6. **Transmit signal** - Press Select on details screen
-7. **Return to previous menu** - Press Back button
 
 ## Future Roadmap
 
