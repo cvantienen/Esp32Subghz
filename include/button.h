@@ -9,6 +9,7 @@
 #define BUTTON_DOWN_PIN 27
 #define BUTTON_BACK_PIN 14
 
+enum buttonType { UP = 1, SELECT = 2, DOWN = 3, BACK = 4 };
 // Button class to handle button states
 class Button {
     int pin;

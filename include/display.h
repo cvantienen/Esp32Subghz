@@ -32,6 +32,8 @@ class OledDisplay {
     void drawSignalDetails(const char *categoryName, SubGHzSignal *signal);
 
     void drawTransmitting(const char *signalName, float frequency);
+
+    void drawAnimationFixedSize(Animation &anim, int y, int x, int width, int height);
 };
 
 

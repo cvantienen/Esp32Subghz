@@ -39,4 +39,6 @@ extern Animation startMenuAnimation;
 
 extern Animation gamecubeAnimation;
 
+extern Animation transmitAnimation;
+
 #endif

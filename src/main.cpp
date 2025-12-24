@@ -49,19 +49,19 @@ QueueHandle_t transmitCompleteQueue = NULL; // RadioTask → loop(): completion
 void ButtonTask(void *parameter) {
     for (;;) {
         if (button_up.pressed()) {
-            uint8_t buttonEvent = 1;                  // UP
+            buttonType buttonEvent = buttonType::UP;                  // UP
             xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
         if (button_down.pressed()) {
-            uint8_t buttonEvent = 2;                  // DOWN
+            buttonType buttonEvent = buttonType::DOWN;                  // DOWN
             xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
         if (button_select.pressed()) {
-            uint8_t buttonEvent = 3;                  // SELECT
+            buttonType buttonEvent = buttonType::SELECT;                  // SELECT
             xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
         if (button_back.pressed()) {
-            uint8_t buttonEvent = 4;                  // BACK
+            buttonType buttonEvent = buttonType::BACK;                  // BACK
             xQueueSend(buttonQueue, &buttonEvent, 0); // Non-blocking
         }
 
@@ -127,7 +127,7 @@ void DisplayTask(void *parameter) {
             case MenuScreen::INTRO: {// intro animation
                 display.drawAnimation(gamecubeAnimation);
                 if (gamecubeAnimation.isComplete()){
-                    uint8_t buttonEvent = 3;                 
+                    buttonType buttonEvent = buttonType::SELECT; // SELECT
                     xQueueSend(buttonQueue, &buttonEvent, 0);
                 };
             };
@@ -154,11 +154,12 @@ void RadioTask(void *parameter) {
         if (xQueueReceive(transmitRequestQueue, &request, portMAX_DELAY) ==
             pdTRUE) {
 
-            SubGHzSignal *signal = &SIGNAL_CATEGORIES[request.category]
-                                        .signals[request.signalIndex];
+            SubGHzSignal &signal = SIGNAL_CATEGORIES[request.category]
+                                       .signals[request.signalIndex];
 
             Serial.println("[RadioTask] Transmission started");
-            radio.transmit(signal->samples, signal->length, signal->frequency);
+            radio.initCC1101(signal.frequency);
+            radio.transmitSignal(signal, 1); // Single transmit
             Serial.println("[RadioTask] Transmission complete");
             vTaskDelay(500);
             // Notify UI that transmission is complete
@@ -182,11 +183,11 @@ void loop() {
 
             switch (menu.getCurrentScreen()) {
             case MenuScreen::CATEGORIES:
-                if (buttonEvent == 1) {
+                if (buttonEvent == buttonType::UP) {
                     menu.categoryUp();
-                } else if (buttonEvent == 2) {
+                } else if (buttonEvent == buttonType::DOWN) {
                     menu.categoryDown();
-                } else if (buttonEvent == 3) {
+                } else if (buttonEvent == buttonType::SELECT) {
                     menu.setCurrentScreen(MenuScreen::SIGNALS);
                     menu.setSignalCount(
                         SIGNAL_CATEGORIES[menu.getSelectedCategory()].count);
@@ -195,21 +196,21 @@ void loop() {
                 break;
 
             case MenuScreen::SIGNALS:
-                if (buttonEvent == 1) {
+                if (buttonEvent == buttonType::UP) {
                     menu.signalUp();
-                } else if (buttonEvent == 2) {
+                } else if (buttonEvent == buttonType::DOWN) {
                     menu.signalDown();
-                } else if (buttonEvent == 4) {
+                } else if (buttonEvent == buttonType::BACK) {
                     menu.setCurrentScreen(MenuScreen::CATEGORIES);
-                } else if (buttonEvent == 3) {
+                } else if (buttonEvent == buttonType::SELECT) {
                     menu.setCurrentScreen(MenuScreen::DETAILS);
                 }
                 break;
 
             case MenuScreen::DETAILS:
-                if (buttonEvent == 4) {
+                if (buttonEvent == buttonType::BACK) {
                     menu.setCurrentScreen(MenuScreen::SIGNALS);
-                } else if (buttonEvent == 3) {
+                } else if (buttonEvent == buttonType::SELECT) {
                     // User selected to transmit
                     menu.setCurrentScreen(MenuScreen::TRANSMIT);
 
@@ -223,22 +224,17 @@ void loop() {
                 break;
 
             case MenuScreen::TRANSMIT:
-                if (buttonEvent == 4) {
+                if (buttonEvent == buttonType::BACK) {
                     menu.setCurrentScreen(MenuScreen::DETAILS);
                 }
                 break;
             case MenuScreen::STARTMENU:
-                if (buttonEvent == 3) {
+                if (buttonEvent == buttonType::SELECT) {
                     menu.setCurrentScreen(MenuScreen::CATEGORIES);
                 }
                 break;
             case MenuScreen::INTRO:
-                // // Check for Animation progress
-                // // if (gamecubeAnimation.isComplete()) {
-                // //     Serial.println("Intro animation Complete");
-                // //     menu.setCurrentScreen(MenuScreen::STARTMENU);
-                // // }
-                if (buttonEvent == 3) {
+                if (buttonEvent == buttonType::SELECT) {
                     menu.setCurrentScreen(MenuScreen::STARTMENU);
                 } // Skip
             break;
@@ -294,31 +290,34 @@ void setup() {
     delay(200);
     Serial.println("[setup] I2C initialized");
 
-    // Initialize hardware
+    // Initialize button hardware
     button_up.init();
     button_select.init();
     button_down.init();
     button_back.init();
     delay(50);
 
-    radio.initCC1101();
+    // Initialize radio
+    Serial.println("[setup] Initializing SubGHz radio...");
+    radio.initCC1101(433.92); 
     delay(50);
 
     // Initialize display
     Serial.println("[setup] Initializing display...");
     display.init();
     delay(50);
+    // Show intro screen
     display.clear();
     display.drawIntroScreen();
     display.show();
     delay(1500);
     Serial.println("[setup] Display initialized");
-
+    // Initialize menu
     menu.setCurrentScreen(MenuScreen::INTRO);
     menu.setCategoryCount(NUM_OF_CATEGORIES);
 
 
-    // Create queues (NO MUTEX NEEDED!)
+    // Create button event queue
     buttonQueue = xQueueCreate(QUEUE_SIZE, sizeof(uint8_t));
     if (buttonQueue == NULL) {
         Serial.println("[ERROR] Failed to create button queue!");
